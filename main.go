@@ -1,6 +1,9 @@
 package main
 
 import (
+	"api-gateway/internal/components/grace"
+	_ "api-gateway/internal/logic"
+
 	"api-gateway/internal/components"
 	_ "api-gateway/internal/packed"
 
@@ -14,5 +17,7 @@ func main() {
 	// load components
 	components.Init(ctx)
 	// run
-	cmd.Main.Run(ctx)
+	go cmd.Main.Run(ctx)
+	// grace exit
+	grace.GracefulExit(ctx)
 }

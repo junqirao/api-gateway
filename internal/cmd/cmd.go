@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/gogf/gf/v2/frame/g"
-	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcmd"
 
-	"api-gateway/internal/controller/hello"
+	"api-gateway/internal/components/config"
+	"api-gateway/internal/controller/reverse"
 )
 
 var (
@@ -16,13 +18,12 @@ var (
 		Usage: "main",
 		Brief: "start http server",
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
+			pattern := config.Gateway.Prefix
+			if !strings.HasSuffix(pattern, "/") {
+				pattern += "/"
+			}
 			s := g.Server()
-			s.Group("/", func(group *ghttp.RouterGroup) {
-				group.Middleware(ghttp.MiddlewareHandlerResponse)
-				group.Bind(
-					hello.NewV1(),
-				)
-			})
+			s.BindHandler(fmt.Sprintf("%s*", pattern), reverse.New().Proxy)
 			s.Run()
 			return nil
 		},
