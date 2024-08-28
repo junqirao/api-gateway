@@ -1,6 +1,7 @@
 package main
 
 import (
+	"api-gateway/internal/components"
 	_ "api-gateway/internal/packed"
 
 	"github.com/gogf/gf/v2/os/gctx"
@@ -9,5 +10,9 @@ import (
 )
 
 func main() {
-	cmd.Main.Run(gctx.GetInitCtx())
+	ctx := gctx.GetInitCtx()
+	// load components
+	components.Init(ctx)
+	// run
+	cmd.Main.Run(ctx)
 }
