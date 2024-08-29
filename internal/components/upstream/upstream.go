@@ -15,9 +15,8 @@ import (
 	"api-gateway/internal/components/proxy"
 )
 
-func GetService(routingKey string) (s *Service) {
-	s, _ = cache.GetService(routingKey)
-	return
+func GetService(routingKey string) (*Service, bool) {
+	return cache.GetService(routingKey)
 }
 
 func NewUpstream(ctx context.Context, instance *registry.Instance) *Upstream {

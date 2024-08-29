@@ -6,8 +6,6 @@ import (
 
 	"github.com/gogf/gf/v2/frame/g"
 	registry "github.com/junqirao/simple-registry"
-
-	"api-gateway/internal/components/config"
 )
 
 var (
@@ -49,18 +47,18 @@ func (h *cacheHandler) registerEvent() {
 			return
 		}
 
-		ups, _ := h.GetService(instance.ServiceName)
+		srv, _ := h.GetService(instance.ServiceName)
 		defer func() {
-			h.setService(instance.ServiceName, ups)
+			h.setService(instance.ServiceName, srv)
 		}()
 
 		switch e {
 		case registry.EventTypeUpdate, registry.EventTypeCreate:
 			g.Log().Infof(ctx, "upstream cache %s service=%s instance=%v", e, instance.ServiceName, instance.String())
-			ups.Set(NewUpstream(ctx, instance))
+			srv.Set(NewUpstream(ctx, instance))
 		case registry.EventTypeDelete:
 			g.Log().Infof(ctx, "upstream cache delete instance=%s", instance.Identity())
-			ups.Delete(instance.Identity())
+			srv.Delete(instance.Identity())
 		}
 	})
 }
@@ -97,20 +95,14 @@ func (h *cacheHandler) build(ctx context.Context) {
 	g.Log().Infof(ctx, "upstream cache build done.")
 }
 
-func (h *cacheHandler) GetService(routingKey string) (ups *Service, ok bool) {
-	v, ok := h.m.Load(routingKey)
-	if !ok {
-		cfg, has := config.GetServiceConfig(routingKey)
-		ups = NewService(routingKey, *cfg)
-		if has {
-			h.m.Store(routingKey, ups)
-		}
-	} else {
-		ups = v.(*Service)
+func (h *cacheHandler) GetService(routingKey string) (srv *Service, ok bool) {
+	var v interface{}
+	if v, ok = h.m.Load(routingKey); ok {
+		srv = v.(*Service)
 	}
 	return
 }
 
-func (h *cacheHandler) setService(routingKey string, ups *Service) {
-	h.m.Store(routingKey, ups)
+func (h *cacheHandler) setService(routingKey string, srv *Service) {
+	h.m.Store(routingKey, srv)
 }

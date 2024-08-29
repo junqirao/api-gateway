@@ -29,10 +29,17 @@ func init() {
 // 6. control retry and response write
 func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 	var (
-		upstreams  = upstream.GetService(input.RoutingKey)
-		retryCount = upstreams.Config.ReverseProxy.RetryCount
+		upstreams, ok = upstream.GetService(input.RoutingKey)
 	)
 
+	if !ok || upstreams == nil {
+		// service not found response 503
+		response.WriteJSON(input.Request,
+			response.CodeUnavailable.WithDetail(input.RoutingKey))
+		return
+	}
+
+	retryCount := upstreams.Config.ReverseProxy.RetryCount
 	retry, err := s.doProxy(ctx, upstreams, input)
 	if err == nil {
 		return
