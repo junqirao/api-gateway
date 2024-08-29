@@ -35,9 +35,10 @@ func newUpstreamCache(ctx context.Context) *cacheHandler {
 }
 
 func (h *cacheHandler) registerEvent() {
-	registry.Registry.RegisterEventHandler(func(ctx context.Context, instance *registry.Instance, e registry.EventType) {
+	registry.Registry.RegisterEventHandler(func(instance *registry.Instance, e registry.EventType) {
 		h.mu.Lock()
 		defer h.mu.Unlock()
+		ctx := context.Background()
 
 		if instance == nil {
 			g.Log().Infof(ctx, "instance not found, skip event.")
