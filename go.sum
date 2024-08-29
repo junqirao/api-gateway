@@ -39,6 +39,8 @@ github.com/junqirao/simple-registry v0.0.0-20240828050748-a1a1ddcac9ad h1:Jko1E+
 github.com/junqirao/simple-registry v0.0.0-20240828050748-a1a1ddcac9ad/go.mod h1:pwRglZimZXRfhYbiI2Stz65sj9hRe1Pr/0nzJMgEB9w=
 github.com/junqirao/simple-registry v0.0.0-20240828053223-dea95e1e2a68 h1:9bY92l+uGRdphfqOgoTg4CLTJnfwLjwBJsTnJBX0+jo=
 github.com/junqirao/simple-registry v0.0.0-20240828053223-dea95e1e2a68/go.mod h1:pwRglZimZXRfhYbiI2Stz65sj9hRe1Pr/0nzJMgEB9w=
+github.com/junqirao/simple-registry v0.0.0-20240829033148-ad109e602fa5 h1:cK1AQjfctXPgdTHgPjeSBP9cf+8Gy68lECJA1xHcTws=
+github.com/junqirao/simple-registry v0.0.0-20240829033148-ad109e602fa5/go.mod h1:pwRglZimZXRfhYbiI2Stz65sj9hRe1Pr/0nzJMgEB9w=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/magiconair/properties v1.8.7 h1:IeQXZAiQcpL9mgcAe1Nu6cX9LLw6ExEHKjN0VQdvPDY=
@@ -127,6 +129,8 @@ google.golang.org/genproto/googleapis/rpc v0.0.0-20240827150818-7e3bb234dfed h1:
 google.golang.org/genproto/googleapis/rpc v0.0.0-20240827150818-7e3bb234dfed/go.mod h1:UqMtugtsSgubUsoxbuAoiCXvqvErP7Gf0so0mK9tHxU=
 google.golang.org/grpc v1.65.0 h1:bs/cUb4lp1G5iImFFd3u5ixQzweKizoZJAwBNLR42lc=
 google.golang.org/grpc v1.65.0/go.mod h1:WgYC2ypjlB0EiQi6wdKixMqukr6lBc0Vo+oOgjrM5ZQ=
+google.golang.org/grpc v1.66.0 h1:DibZuoBznOxbDQxRINckZcUvnCEvrW9pcWIE2yF9r1c=
+google.golang.org/grpc v1.66.0/go.mod h1:s3/l6xSSCURdVfAnL+TqCNMyTDAGN6+lZeVxnZR128Y=
 google.golang.org/protobuf v1.34.2 h1:6xV6lTsCfpGD21XK49h7MhtcApnLqkfYgPcdHftf6hg=
 google.golang.org/protobuf v1.34.2/go.mod h1:qYOHts0dSfpeUzUFpOMr/WGzszTmLH+DiWniOlNbLDw=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=

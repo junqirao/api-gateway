@@ -5,7 +5,7 @@ go 1.21.7
 require (
 	github.com/gogf/gf/v2 v2.7.2
 	github.com/google/uuid v1.6.0
-	github.com/junqirao/simple-registry v0.0.0-20240828053223-dea95e1e2a68
+	github.com/junqirao/simple-registry v0.0.0-20240829033148-ad109e602fa5
 	github.com/sony/gobreaker v1.0.0
 	golang.org/x/time v0.6.0
 )
@@ -44,7 +44,7 @@ require (
 	golang.org/x/text v0.17.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240827150818-7e3bb234dfed // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240827150818-7e3bb234dfed // indirect
-	google.golang.org/grpc v1.65.0 // indirect
+	google.golang.org/grpc v1.66.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
