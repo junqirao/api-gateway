@@ -5,7 +5,7 @@ go 1.21.7
 require (
 	github.com/gogf/gf/v2 v2.7.2
 	github.com/google/uuid v1.6.0
-	github.com/junqirao/simple-registry v0.0.1-rc1
+	github.com/junqirao/simple-registry v0.0.1-rc1.0.20240830104221-bc306edf1ca7
 	github.com/mroth/weightedrand v1.0.0
 	github.com/sony/gobreaker v1.0.0
 	golang.org/x/time v0.6.0
