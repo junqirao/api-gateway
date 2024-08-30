@@ -20,10 +20,13 @@ import (
 
 const (
 	resultCallbackCtxKey = "___result_callback"
+	// headerKeyServerId used for trace server, value is registry.Instance.Id
+	headerKeyServerId = "Srv-Instance-Id"
 )
 
 type (
 	proxy2httpHandler struct {
+		insId        string
 		cfg          *model.ReverseProxyConfig
 		scheme       string
 		host         string
@@ -64,6 +67,7 @@ func newHTTPHandler(ins *registry.Instance, cfg *model.ReverseProxyConfig) *prox
 	}
 	target, _ := url.Parse(targetHost)
 	handler := &proxy2httpHandler{
+		insId:        ins.Id,
 		cfg:          cfg,
 		scheme:       target.Scheme,
 		host:         target.Host,
@@ -85,7 +89,8 @@ func newHTTPHandler(ins *registry.Instance, cfg *model.ReverseProxyConfig) *prox
 			TLSHandshakeTimeout:   tlsHandshakeTimeout,
 			ExpectContinueTimeout: 1 * time.Second,
 		},
-		ErrorHandler: handler.errorHandler,
+		ErrorHandler:   handler.errorHandler,
+		ModifyResponse: handler.responseModifier,
 	}
 	return handler
 }
@@ -111,6 +116,12 @@ func (h *proxy2httpHandler) errorHandler(_ http.ResponseWriter, request *http.Re
 			cb(err)
 		}
 	}
+}
+
+func (h *proxy2httpHandler) responseModifier(resp *http.Response) error {
+	resp.Header.Set(headerKeyServerId, h.insId)
+	// if return err!=nil will call h.errorHandler
+	return nil
 }
 
 // Do proxy request and report error
