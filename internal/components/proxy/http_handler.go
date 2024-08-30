@@ -13,15 +13,11 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/util/gconv"
 	registry "github.com/junqirao/simple-registry"
 
+	"api-gateway/internal/consts"
 	"api-gateway/internal/model"
-)
-
-const (
-	resultCallbackCtxKey = "___result_callback"
-	// headerKeyServerId used for trace server, value is registry.Instance.Id
-	headerKeyServerId = "Srv-Instance-Id"
 )
 
 type (
@@ -111,7 +107,7 @@ func (h *proxy2httpHandler) director(req *http.Request) {
 }
 
 func (h *proxy2httpHandler) errorHandler(_ http.ResponseWriter, request *http.Request, err error) {
-	if v := request.Context().Value(resultCallbackCtxKey); v != nil {
+	if v := request.Context().Value(consts.CtxKeyResultCallback); v != nil {
 		if cb, ok := v.(resultCallback); ok && cb != nil {
 			cb(err)
 		}
@@ -119,7 +115,9 @@ func (h *proxy2httpHandler) errorHandler(_ http.ResponseWriter, request *http.Re
 }
 
 func (h *proxy2httpHandler) responseModifier(resp *http.Response) error {
-	resp.Header.Set(headerKeyServerId, h.insId)
+	resp.Header.Set(consts.HeaderKeyServerId, h.insId)
+	resp.Header.Set(consts.HeaderKeyProxyTimeCost,
+		gconv.String(float64(time.Now().UnixNano()-resp.Request.Context().Value(consts.CtxKeyEnterTime).(int64))/1e6))
 	// if return err!=nil will call h.errorHandler
 	return nil
 }
@@ -132,7 +130,7 @@ func (h *proxy2httpHandler) Do(ctx context.Context, req *ghttp.Request) (err err
 		cb   resultCallback = func(e error) { err = e }
 	)
 	// ctx from req.Request, processed by goframe at webservice entrance
-	ctx = context.WithValue(ctx, resultCallbackCtxKey, cb)
+	ctx = context.WithValue(ctx, consts.CtxKeyResultCallback, cb)
 
 	// serve proxy
 	h.ServeHTTP(req.Response.RawWriter(), req.Request.WithContext(ctx))

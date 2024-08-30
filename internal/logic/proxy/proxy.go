@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"context"
-	"time"
 
 	"github.com/gogf/gf/v2/frame/g"
 
@@ -52,7 +51,6 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 	for retry && retryCount > 0 {
 		g.Log().Infof(ctx, "retry count: %d", retryCount)
 		retry, err = s.doProxy(ctx, upstreams, input)
-		time.Sleep(time.Millisecond * 100)
 		retryCount--
 	}
 	if err == nil && !retry {

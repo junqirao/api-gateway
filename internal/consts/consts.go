@@ -1,16 +1,11 @@
 package consts
 
 const (
-	GatewayConfigPattern         = "gateway"
-	GatewayConfigPrefixPattern   = "gateway.prefix"
-	GatewayConfigBalancerPattern = "gateway.load_balance"
-	GatewayConfigLimiterPattern  = "gateway.limiter"
-	ProxyTypeHTTP                = "http"
+	CtxKeyEnterTime      = "___enter_time"
+	CtxKeyResultCallback = "___result_callback"
 )
 
 const (
-	ConfigScopeReverseProxy = "gateway_config_reverse_proxy"
-	ConfigScopeBalancer     = "gateway_config_balancer"
-	ConfigScopeLimiter      = "gateway_config_limiter"
-	ConfigScopeBreaker      = "gateway_config_breaker"
+	HeaderKeyServerId      = "X-Srv-Instance-Id"
+	HeaderKeyProxyTimeCost = "X-Proxy-Time-Cost-MS"
 )
