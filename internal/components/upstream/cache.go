@@ -6,6 +6,8 @@ import (
 
 	"github.com/gogf/gf/v2/frame/g"
 	registry "github.com/junqirao/simple-registry"
+
+	"api-gateway/internal/components/config"
 )
 
 var (
@@ -14,7 +16,6 @@ var (
 
 type (
 	cacheHandler struct {
-		mu                sync.RWMutex
 		ignoreServiceName string
 		m                 sync.Map // routing_key(service_name) : *model.Service
 	}
@@ -25,19 +26,15 @@ func newUpstreamCache(ctx context.Context) *cacheHandler {
 		// ignore self
 		ignoreServiceName: g.Cfg().MustGet(ctx, "registry.service_name").String(),
 		m:                 sync.Map{},
-		mu:                sync.RWMutex{},
 	}
-	h.registerEvent()
 	h.build(ctx)
+	h.registerEvent()
 	return h
 }
 
 func (h *cacheHandler) registerEvent() {
 	registry.Registry.RegisterEventHandler(func(instance *registry.Instance, e registry.EventType) {
-		h.mu.Lock()
-		defer h.mu.Unlock()
 		ctx := context.Background()
-
 		if instance == nil {
 			g.Log().Infof(ctx, "instance not found, skip event.")
 			return
@@ -47,18 +44,21 @@ func (h *cacheHandler) registerEvent() {
 			return
 		}
 
-		srv, _ := h.GetService(instance.ServiceName)
-		defer func() {
-			h.setService(instance.ServiceName, srv)
-		}()
-
 		switch e {
 		case registry.EventTypeUpdate, registry.EventTypeCreate:
-			g.Log().Infof(ctx, "upstream cache %s service=%s instance=%v", e, instance.ServiceName, instance.String())
-			srv.Set(NewUpstream(ctx, instance))
+			g.Log().Infof(ctx, "service[%s] %s upstreams , instance=%v", instance.ServiceName, e, instance.String())
+			h.getOrCreateService(ctx, instance.ServiceName).Set(NewUpstream(ctx, instance))
 		case registry.EventTypeDelete:
-			g.Log().Infof(ctx, "upstream cache delete instance=%s", instance.Identity())
+			g.Log().Infof(ctx, "service[%s] delete upstream instance=%s", instance.ServiceName, instance.Identity())
+			srv, ok := h.getService(instance.ServiceName)
+			if !ok {
+				g.Log().Warningf(ctx, "upstream cache not found service=%s", instance.ServiceName)
+				return
+			}
 			srv.Delete(instance.Identity())
+			if len(srv.Ups) == 0 {
+				h.m.Delete(instance.ServiceName)
+			}
 		}
 	})
 }
@@ -75,30 +75,42 @@ func (h *cacheHandler) build(ctx context.Context) {
 		return true
 	})
 	for sName, instances := range services {
-		ups, _ := h.GetService(sName)
+		if sName == h.ignoreServiceName {
+			continue
+		}
+		srv := h.getOrCreateService(ctx, sName)
 		instances.Range(func(instance *registry.Instance) bool {
-			if instance.ServiceName == h.ignoreServiceName {
-				return true
-			}
 			id := instance.Identity()
 			delete(current, id)
-			g.Log().Infof(ctx, "upstream cache add service=%s instance=%v", sName, instance.String())
-			ups.Set(NewUpstream(ctx, instance))
+			// upsert
+			srv.Set(NewUpstream(ctx, instance))
+			g.Log().Infof(ctx, "build service[%s] upstream set instance=%v, ups_length=%d", sName, instance.String(), len(srv.Ups))
 			return true
 		})
-		h.setService(sName, ups)
 	}
 	for k, _ := range current {
-		g.Log().Infof(ctx, "upstream cache delete instance=%s", k)
+		g.Log().Infof(ctx, "remove service=%s", k)
 		h.m.Delete(k)
 	}
 	g.Log().Infof(ctx, "upstream cache build done.")
 }
 
-func (h *cacheHandler) GetService(routingKey string) (srv *Service, ok bool) {
+func (h *cacheHandler) getService(routingKey string) (srv *Service, ok bool) {
 	var v interface{}
 	if v, ok = h.m.Load(routingKey); ok {
 		srv = v.(*Service)
+	}
+	return
+}
+
+func (h *cacheHandler) getOrCreateService(ctx context.Context, routingKey string) (srv *Service) {
+	var ok bool
+	srv, ok = h.getService(routingKey)
+	if !ok {
+		cfg, ok := config.GetServiceConfig(routingKey)
+		g.Log().Infof(ctx, "upstream cache create service=%s, defaultServiceConfig=%v", routingKey, !ok)
+		srv = NewService(routingKey, *cfg)
+		h.setService(routingKey, srv)
 	}
 	return
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/mroth/weightedrand"
 
 	"api-gateway/internal/model"
 )
@@ -12,11 +13,13 @@ import (
 func NewService(routingKey string, cfg model.ServiceConfig) *Service {
 	return &Service{
 		Ups:        make([]*Upstream, 0),
+		Choices:    make([]*weightedrand.Choice, 0),
 		Config:     cfg,
 		RoutingKey: routingKey,
 	}
 }
 
+// Set upstream by upsert
 func (s *Service) Set(u *Upstream) {
 	for i, upstream := range s.Ups {
 		if upstream.Identity() == u.Identity() {

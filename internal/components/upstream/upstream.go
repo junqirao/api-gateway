@@ -16,7 +16,7 @@ import (
 )
 
 func GetService(routingKey string) (*Service, bool) {
-	return cache.GetService(routingKey)
+	return cache.getService(routingKey)
 }
 
 func NewUpstream(ctx context.Context, instance *registry.Instance) *Upstream {
