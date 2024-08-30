@@ -6,7 +6,7 @@ import (
 
 	"github.com/gogf/gf/v2/frame/g"
 
-	"api-gateway/internal/components/balancer"
+	"api-gateway/internal/components/loadbalance"
 	"api-gateway/internal/components/response"
 	"api-gateway/internal/components/upstream"
 	"api-gateway/internal/model"
@@ -44,6 +44,7 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 	if err == nil {
 		return
 	}
+	// break retry if no other upstream to select
 	if len(upstreams.Ups) <= 1 {
 		response.WriteJSON(input.Request, err)
 		return
@@ -65,7 +66,7 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 }
 
 func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input *model.ReverseProxyInput) (retry bool, err *response.Code) {
-	ups, ok := upstreams.Select(input.Request, balancer.GetOrCreate(input.RoutingKey).Selector)
+	ups, ok := upstreams.Select(input.Request, loadbalance.GetOrCreate(input.RoutingKey).Selector)
 	if !ok {
 		// 503
 		err = response.CodeUnavailable.WithDetail(input.RoutingKey)

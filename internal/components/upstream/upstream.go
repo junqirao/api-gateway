@@ -3,6 +3,7 @@ package upstream
 import (
 	"context"
 	"errors"
+	"sync/atomic"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -12,12 +13,22 @@ import (
 	"api-gateway/internal/components/breaker"
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/limiter"
+	"api-gateway/internal/components/loadbalance"
 	"api-gateway/internal/components/proxy"
+	"api-gateway/internal/model"
 )
 
-func GetService(routingKey string) (*Service, bool) {
-	return cache.getService(routingKey)
-}
+type (
+	// Upstream is a reverse proxy target
+	Upstream struct {
+		registry.Instance
+		loadbalance.Weighted
+		Handler  model.ReverseProxyHandler
+		limiter  *limiter.Limiter
+		breaker  *breaker.Breaker
+		highLoad *atomic.Bool
+	}
+)
 
 func NewUpstream(ctx context.Context, instance *registry.Instance) *Upstream {
 	cfg, _ := config.GetServiceConfig(instance.ServiceName)
@@ -25,6 +36,8 @@ func NewUpstream(ctx context.Context, instance *registry.Instance) *Upstream {
 		Instance: *instance,
 		breaker:  breaker.New(cfg.Breaker.Setting(ctx)),
 		limiter:  limiter.NewLimiter(cfg.RateLimiter),
+		Weighted: loadbalance.NewWeighted(basicLoadBalanceWeight),
+		highLoad: &atomic.Bool{},
 	}
 	u.Handler = proxy.NewHandler(ctx, instance, cfg.ReverseProxy)
 	return u
@@ -33,10 +46,11 @@ func NewUpstream(ctx context.Context, instance *registry.Instance) *Upstream {
 // Allow is a combined entrance of rate limiter and circuit breaker,
 // returns limiter allow flag and circuit breaker callback
 func (u *Upstream) Allow(ctx context.Context) (ok bool, cb func(success bool)) {
-	ok = u.limiter.Allow()
-	if !ok {
+	if ok = u.limiter.Allow(); !ok {
+		u.highLoad.Store(true)
 		return
 	}
+	u.highLoad.Store(false)
 	cb, err := u.breaker.Allow()
 	if err != nil {
 		if errors.Is(err, gobreaker.ErrOpenState) || errors.Is(err, gobreaker.ErrTooManyRequests) {
@@ -60,6 +74,10 @@ func (u *Upstream) Do(ctx context.Context, req *ghttp.Request, cb func(success b
 	cb(success)
 	retry = !success
 	return
+}
+
+func (u *Upstream) healthy() bool {
+	return u.breaker.State() != gobreaker.StateOpen && !u.highLoad.Load()
 }
 
 // func (u *Upstream) updateConfig(ctx context.Context, scope string, op config.Operation, cfg model.ServiceConfig) {

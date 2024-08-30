@@ -27,7 +27,10 @@ type (
 	// LoadBalanceConfig load balance config
 	LoadBalanceConfig struct {
 		// Strategy load balance strategy: random, round_robin
-		Strategy string `json:"strategy"`
+		Strategy string `json:"strategy"` // default random
+		// Weight runtime_weight = LoadBalanceConfig.Weight + basic_weight,
+		// runtime_weight will dynamic adjust according to running performance indicators
+		Weight int `json:"weight"`
 	}
 	// RateLimiterConfig rate limiter config
 	RateLimiterConfig struct {
