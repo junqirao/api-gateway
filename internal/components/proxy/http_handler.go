@@ -129,32 +129,32 @@ func (h *proxy2httpHandler) responseModifier(resp *http.Response) error {
 func (h *proxy2httpHandler) Do(ctx context.Context, req *ghttp.Request) (err error) {
 	// prepare
 	var (
-		body                = copyBody(req.Request)
-		cb   resultCallback = func(e error) { err = e }
+		bs []byte
+		cb resultCallback = func(e error) { err = e }
 	)
+
+	if req.ContentLength != 0 {
+		// read and close request body
+		if bs, err = io.ReadAll(req.Body); err != nil {
+			return
+		}
+		if err = req.Body.Close(); err != nil {
+			return
+		}
+
+		// set request body
+		req.Body = io.NopCloser(bytes.NewBuffer(bs))
+	}
+
 	// ctx from req.Request, processed by goframe at webservice entrance
 	ctx = context.WithValue(ctx, consts.CtxKeyResultCallback, cb)
 
 	// serve proxy
 	h.ServeHTTP(req.Response.RawWriter(), req.Request.WithContext(ctx))
 
-	// handler error
-	if err != nil {
-		req.Request.Body = body
+	// when err not nil may cause retry and old body may be closed
+	if err != nil && bs != nil {
+		req.Request.Body = io.NopCloser(bytes.NewBuffer(bs))
 	}
 	return
-}
-
-func copyBody(req *http.Request) io.ReadCloser {
-	if req.ContentLength != 0 {
-		bs, _ := io.ReadAll(req.Body)
-		_ = req.Body.Close()
-
-		ex := make([]byte, len(bs))
-		copy(ex, bs)
-
-		req.Body = io.NopCloser(bytes.NewBuffer(bs))
-		return io.NopCloser(bytes.NewBuffer(ex))
-	}
-	return req.Body
 }
