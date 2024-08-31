@@ -2,9 +2,11 @@ package proxy
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/gogf/gf/v2/frame/g"
 
+	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/loadbalance"
 	"api-gateway/internal/components/response"
 	"api-gateway/internal/components/upstream"
@@ -40,49 +42,60 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 
 	// proxy with retry
 	retryCount := upstreams.Config.ReverseProxy.RetryCount
-	retry, err := s.doProxy(ctx, upstreams, input)
-	if err == nil {
+	canRetry, code := s.doProxy(ctx, upstreams, input)
+	if code == nil {
+		// already response by upstream.Upstream
 		return
 	}
 	// break retry if no other upstream to select
-	if len(upstreams.Ups) <= 1 {
-		response.WriteJSON(input.Request, err)
+	if upstreams.CountUpstream() <= 1 {
+		response.WriteJSON(input.Request, code)
 		return
 	}
-	for retry && retryCount > 0 {
-		g.Log().Infof(ctx, "retry count: %d", retryCount)
-		retry, err = s.doProxy(ctx, upstreams, input)
+
+	// retry loop
+	for canRetry && retryCount > 0 {
+		g.Log().Infof(ctx, "retry proxy, count: %d, reason: %v", retryCount, code)
+		canRetry, code = s.doProxy(ctx, upstreams, input)
 		retryCount--
 	}
-	if err == nil && !retry {
+
+	if code == nil {
+		// retry succeeded, response by upstream.Upstream
 		return
 	}
 
-	// response
-	if err == nil {
-		g.Log().Errorf(ctx, "proxy error: %v", err)
-		err = response.CodeBadGateway.WithDetail(input.RoutingKey)
-	}
-	response.WriteJSON(input.Request, err)
+	response.WriteJSON(input.Request, code)
 }
 
-func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input *model.ReverseProxyInput) (retry bool, err *response.Code) {
+func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input *model.ReverseProxyInput) (canRetry bool, code *response.Code) {
 	ups, ok := upstreams.Select(input.Request, loadbalance.GetOrCreate(input.RoutingKey).Selector)
 	if !ok {
 		// 503
-		err = response.CodeUnavailable.WithDetail(input.RoutingKey)
+		code = response.CodeUnavailable.WithDetail(input.RoutingKey)
 		return
 	}
-	allow, cb := ups.Allow(ctx)
-	if !allow {
-		// 429
-		err = response.CodeTooManyRequests.WithDetail(input.RoutingKey)
+	cb, code := ups.Allow(ctx)
+	if code != nil {
+		// 429,500,503
+		if code.Code() != http.StatusTooManyRequests && ups.Parent.CountUpstream() > 1 {
+			// if not 429 and has more than 1 upstream, can retry
+			canRetry = true
+		}
 		return
 	}
-	retry, e := ups.Do(ctx, input.Request, cb)
+	e := ups.Do(ctx, input.Request, cb)
 	if e != nil {
+		// can retry
+		canRetry = true
+		g.Log().Warningf(ctx, "error caused during proxy: %s", e.Error())
 		// 502
-		err = response.CodeBadGateway
+		if config.Gateway.Debug {
+			// response detail in debug mode
+			code = response.CodeBadGateway.WithMessage(e.Error())
+		} else {
+			code = response.CodeBadGateway.WithDetail(input.RoutingKey)
+		}
 	}
 	return
 }

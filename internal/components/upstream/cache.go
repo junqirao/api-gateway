@@ -56,7 +56,7 @@ func (h *cacheHandler) registerEvent() {
 				return
 			}
 			srv.Delete(instance.Identity())
-			if len(srv.Ups) == 0 {
+			if srv.CountUpstream() == 0 {
 				h.m.Delete(instance.ServiceName)
 			}
 		}
@@ -84,7 +84,7 @@ func (h *cacheHandler) build(ctx context.Context) {
 			delete(current, id)
 			// upsert
 			srv.Set(NewUpstream(ctx, instance))
-			g.Log().Infof(ctx, "build service[%s] upstream set instance=%v, ups_length=%d", sName, instance.String(), len(srv.Ups))
+			g.Log().Infof(ctx, "build service[%s] upstream set instance=%v, ups_length=%d", sName, instance.String(), srv.CountUpstream())
 			return true
 		})
 	}

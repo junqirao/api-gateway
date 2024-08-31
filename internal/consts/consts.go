@@ -5,7 +5,9 @@ const (
 )
 
 const (
-	HeaderKeyServerId       = "X-Srv-Instance-Id"
-	HeaderKeyServerHostName = "X-Srv-Host-Name"
-	HeaderKeyServerAddr     = "X-Srv-Address"
+	HeaderKeyServerId                      = "X-Srv-Instance-Id"
+	HeaderKeyServerHostName                = "X-Srv-Host-Name"
+	HeaderKeyServerAddr                    = "X-Srv-Address"
+	HeaderKeyServiceUpstreamCount          = "X-Svc-Upstream-Count"
+	HeaderKeyServiceAvailableUpstreamCount = "X-Svc-Available-Upstream-Count"
 )

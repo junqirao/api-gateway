@@ -17,7 +17,8 @@ type (
 	// Service contains Upstream list
 	Service struct {
 		mu         sync.RWMutex
-		Ups        []*Upstream
+		ups        []*Upstream
+		available  int
 		Config     model.ServiceConfig
 		RoutingKey string
 	}
@@ -28,7 +29,7 @@ type (
 func NewService(routingKey string, cfg model.ServiceConfig) *Service {
 	return &Service{
 		mu:         sync.RWMutex{},
-		Ups:        make([]*Upstream, 0),
+		ups:        make([]*Upstream, 0),
 		Config:     cfg,
 		RoutingKey: routingKey,
 	}
@@ -43,27 +44,28 @@ func (s *Service) Set(u *Upstream) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for i, upstream := range s.Ups {
+	u.Parent = s
+	for i, upstream := range s.ups {
 		if upstream.Identity() == u.Identity() {
-			s.Ups[i] = u
+			s.ups[i] = u
 			u.SetRef(i)
 			return
 		}
 	}
-	s.Ups = append(s.Ups, u)
-	u.SetRef(len(s.Ups) - 1)
+	s.ups = append(s.ups, u)
+	u.SetRef(len(s.ups) - 1)
 }
 
 func (s *Service) Delete(id string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for i, upstream := range s.Ups {
+	for i, upstream := range s.ups {
 		if upstream.Identity() == id {
-			s.Ups = append(s.Ups[:i], s.Ups[i+1:]...)
-			// reset ref from i+1 -> len(s.Ups
-			for j := i; j < len(s.Ups); j++ {
-				s.Ups[j].SetRef(j)
+			s.ups = append(s.ups[:i], s.ups[i+1:]...)
+			// reset ref from i+1 -> len(s.ups
+			for j := i; j < len(s.ups); j++ {
+				s.ups[j].SetRef(j)
 			}
 			return
 		}
@@ -74,18 +76,20 @@ func (s *Service) Select(r *ghttp.Request, selector Selector) (u *Upstream, ok b
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	if s == nil || len(s.Ups) == 0 {
-		return
-	}
-	if len(s.Ups) == 1 {
-		ok = true
-		u = s.Ups[0]
+	available := s.availableWeighted()
+	if s == nil || len(available) == 0 {
 		return
 	}
 
-	idx, ok := selector(r, s.availableWeighted())
+	if len(available) == 1 {
+		ok = true
+		u = s.ups[available[0].Ref()]
+		return
+	}
+
+	idx, ok := selector(r, available)
 	if ok {
-		u = s.Ups[idx]
+		u = s.ups[idx]
 	}
 	return
 }
@@ -95,10 +99,31 @@ func (s *Service) availableWeighted() []loadbalance.Weighted {
 	defer s.mu.RUnlock()
 
 	var ups []loadbalance.Weighted
-	for _, u := range s.Ups {
+	for _, u := range s.ups {
 		if u.healthy() {
 			ups = append(ups, u)
 		}
 	}
+	s.available = len(ups)
 	return ups
+}
+
+func (s *Service) CountUpstream() int {
+	return len(s.ups)
+}
+
+func (s *Service) CountAvailableUpstream() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.available == 0 && len(s.ups) > 0 {
+		cnt := 0
+		for _, u := range s.ups {
+			if u.healthy() {
+				cnt++
+			}
+		}
+		s.available = cnt
+	}
+	return s.available
 }

@@ -16,6 +16,7 @@ var (
 	CodeConflict         = NewCode(409, "resource conflict", http.StatusConflict)
 	CodeTooManyRequests  = NewCode(429, "too many requests", http.StatusTooManyRequests)
 	CodeLocked           = NewCode(423, "resource locked", http.StatusLocked)
+	CodeInternalError    = NewCode(500, "internal error", http.StatusInternalServerError)
 	CodeUnImplemented    = NewCode(501, "not implemented", http.StatusNotImplemented)
 	CodeBadGateway       = NewCode(502, "bad gateway", http.StatusBadGateway)
 	CodeUnavailable      = NewCode(503, "service unavailable", http.StatusServiceUnavailable)

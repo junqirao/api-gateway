@@ -14,7 +14,7 @@ import (
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/limiter"
 	"api-gateway/internal/components/loadbalance"
-	"api-gateway/internal/components/proxy"
+	"api-gateway/internal/components/response"
 	"api-gateway/internal/model"
 )
 
@@ -23,10 +23,12 @@ type (
 	Upstream struct {
 		registry.Instance
 		loadbalance.Weighted
-		Handler  model.ReverseProxyHandler
-		limiter  *limiter.Limiter
-		breaker  *breaker.Breaker
-		highLoad *atomic.Bool
+
+		Parent       *Service
+		proxyHandler model.ReverseProxyHandler
+		limiter      *limiter.Limiter
+		breaker      *breaker.Breaker
+		highLoad     *atomic.Bool
 	}
 )
 
@@ -39,40 +41,45 @@ func NewUpstream(ctx context.Context, instance *registry.Instance) *Upstream {
 		Weighted: loadbalance.NewWeighted(basicLoadBalanceWeight),
 		highLoad: &atomic.Bool{},
 	}
-	u.Handler = proxy.NewHandler(ctx, instance, cfg.ReverseProxy)
+	u.proxyHandler = NewHandler(ctx, u, cfg.ReverseProxy)
 	return u
 }
 
 // Allow is a combined entrance of rate limiter and circuit breaker,
 // returns limiter allow flag and circuit breaker callback
-func (u *Upstream) Allow(ctx context.Context) (ok bool, cb func(success bool)) {
-	if ok = u.limiter.Allow(); !ok {
+func (u *Upstream) Allow(ctx context.Context) (cb func(success bool), code *response.Code) {
+	if ok := u.limiter.Allow(); !ok {
+		// 429
+		code = response.CodeTooManyRequests
 		u.highLoad.Store(true)
 		return
 	}
 	u.highLoad.Store(false)
 	cb, err := u.breaker.Allow()
-	if err != nil {
-		if errors.Is(err, gobreaker.ErrOpenState) || errors.Is(err, gobreaker.ErrTooManyRequests) {
-			g.Log().Infof(ctx, "upstream %s breaker: %v", u.Identity(), err.Error())
-		} else {
-			g.Log().Errorf(ctx, "upstream %s breaker error: %v", u.Identity(), err)
-		}
-		return false, nil
+	switch {
+	case errors.Is(err, gobreaker.ErrTooManyRequests):
+		// 429
+		code = response.CodeTooManyRequests
+	case errors.Is(err, gobreaker.ErrOpenState):
+		// 503
+		code = response.CodeUnavailable
+	case err == nil:
+	default:
+		// 500
+		g.Log().Errorf(ctx, "upstream %s breaker error: %v", u.Identity(), err)
+		code = response.CodeInternalError.WithDetail(err.Error())
 	}
 	return
 }
 
 // Do proxy request to next layer -> model.ReverseProxyHandler
-func (u *Upstream) Do(ctx context.Context, req *ghttp.Request, cb func(success bool)) (retry bool, err error) {
-	if err = u.Handler.Do(ctx, req); err == nil {
+func (u *Upstream) Do(ctx context.Context, req *ghttp.Request, cb func(success bool)) (err error) {
+	if err = u.proxyHandler.Do(ctx, req); err == nil {
 		cb(true)
 		return
 	}
 
-	success := errors.Is(err, context.Canceled)
-	cb(success)
-	retry = !success
+	cb(errors.Is(err, context.Canceled))
 	return
 }
 

@@ -1,4 +1,4 @@
-package proxy
+package upstream
 
 import (
 	"bytes"
@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/net/ghttp"
-	registry "github.com/junqirao/simple-registry"
 
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/consts"
@@ -22,7 +21,7 @@ import (
 
 type (
 	proxy2httpHandler struct {
-		ins          *registry.Instance
+		upstream     *Upstream
 		cfg          *model.ReverseProxyConfig
 		scheme       string
 		host         string
@@ -34,8 +33,9 @@ type (
 	resultCallback func(err error)
 )
 
-func newHTTPHandler(ins *registry.Instance, cfg *model.ReverseProxyConfig) *proxy2httpHandler {
+func newHTTPHandler(upstream *Upstream, cfg *model.ReverseProxyConfig) *proxy2httpHandler {
 	var (
+		ins                 = &upstream.Instance
 		scheme              = cfg.Scheme
 		dialTimeout         = time.Second * 1
 		tlsHandshakeTimeout = time.Second * 1
@@ -63,7 +63,7 @@ func newHTTPHandler(ins *registry.Instance, cfg *model.ReverseProxyConfig) *prox
 	}
 	target, _ := url.Parse(targetHost)
 	handler := &proxy2httpHandler{
-		ins:          ins,
+		upstream:     upstream,
 		cfg:          cfg,
 		scheme:       target.Scheme,
 		host:         target.Host,
@@ -117,9 +117,11 @@ func (h *proxy2httpHandler) errorHandler(_ http.ResponseWriter, request *http.Re
 func (h *proxy2httpHandler) responseModifier(resp *http.Response) error {
 	if config.Gateway.Debug {
 		// add server id
-		resp.Header.Set(consts.HeaderKeyServerId, h.ins.Id)
-		resp.Header.Set(consts.HeaderKeyServerAddr, fmt.Sprintf("%s:%d", h.ins.Host, h.ins.Port))
-		resp.Header.Set(consts.HeaderKeyServerHostName, h.ins.HostName)
+		resp.Header.Set(consts.HeaderKeyServerId, h.upstream.Instance.Id)
+		resp.Header.Set(consts.HeaderKeyServerAddr, fmt.Sprintf("%s:%d", h.upstream.Instance.Host, h.upstream.Instance.Port))
+		resp.Header.Set(consts.HeaderKeyServerHostName, h.upstream.Instance.HostName)
+		resp.Header.Set(consts.HeaderKeyServiceUpstreamCount, fmt.Sprintf("%d", h.upstream.Parent.CountUpstream()))
+		resp.Header.Set(consts.HeaderKeyServiceAvailableUpstreamCount, fmt.Sprintf("%d", h.upstream.Parent.CountAvailableUpstream()))
 	}
 	// if return err!=nil will call h.errorHandler
 	return nil
