@@ -23,6 +23,10 @@ var (
 				pattern += "/"
 			}
 			s := g.Server()
+			if g.Cfg().MustGet(ctx, "server.debug", false).Bool() {
+				g.Log().Info(ctx, "pprof enabled")
+				s.EnablePProf()
+			}
 			s.BindHandler(fmt.Sprintf("%s*", pattern), reverse.New().Proxy)
 			s.Run()
 			return nil

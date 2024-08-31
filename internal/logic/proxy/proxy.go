@@ -38,6 +38,7 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 		return
 	}
 
+	// proxy with retry
 	retryCount := upstreams.Config.ReverseProxy.RetryCount
 	retry, err := s.doProxy(ctx, upstreams, input)
 	if err == nil {
@@ -56,6 +57,8 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 	if err == nil && !retry {
 		return
 	}
+
+	// response
 	if err == nil {
 		g.Log().Errorf(ctx, "proxy error: %v", err)
 		err = response.CodeBadGateway.WithDetail(input.RoutingKey)

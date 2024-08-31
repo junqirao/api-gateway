@@ -13,16 +13,16 @@ import (
 	"time"
 
 	"github.com/gogf/gf/v2/net/ghttp"
-	"github.com/gogf/gf/v2/util/gconv"
 	registry "github.com/junqirao/simple-registry"
 
+	"api-gateway/internal/components/config"
 	"api-gateway/internal/consts"
 	"api-gateway/internal/model"
 )
 
 type (
 	proxy2httpHandler struct {
-		insId        string
+		ins          *registry.Instance
 		cfg          *model.ReverseProxyConfig
 		scheme       string
 		host         string
@@ -63,7 +63,7 @@ func newHTTPHandler(ins *registry.Instance, cfg *model.ReverseProxyConfig) *prox
 	}
 	target, _ := url.Parse(targetHost)
 	handler := &proxy2httpHandler{
-		insId:        ins.Id,
+		ins:          ins,
 		cfg:          cfg,
 		scheme:       target.Scheme,
 		host:         target.Host,
@@ -115,9 +115,12 @@ func (h *proxy2httpHandler) errorHandler(_ http.ResponseWriter, request *http.Re
 }
 
 func (h *proxy2httpHandler) responseModifier(resp *http.Response) error {
-	resp.Header.Set(consts.HeaderKeyServerId, h.insId)
-	resp.Header.Set(consts.HeaderKeyProxyTimeCost,
-		gconv.String(float64(time.Now().UnixNano()-resp.Request.Context().Value(consts.CtxKeyEnterTime).(int64))/1e6))
+	if config.Gateway.Debug {
+		// add server id
+		resp.Header.Set(consts.HeaderKeyServerId, h.ins.Id)
+		resp.Header.Set(consts.HeaderKeyServerAddr, fmt.Sprintf("%s:%d", h.ins.Host, h.ins.Port))
+		resp.Header.Set(consts.HeaderKeyServerHostName, h.ins.HostName)
+	}
 	// if return err!=nil will call h.errorHandler
 	return nil
 }

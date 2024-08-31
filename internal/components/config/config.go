@@ -46,10 +46,20 @@ func GetServiceConfig(serviceName string) (*model.ServiceConfig, bool) {
 }
 
 func loadConfigs(ctx context.Context) {
+	// load gateway config
 	if err := g.Cfg().MustGet(ctx, "gateway",
 		&model.GatewayConfig{Prefix: defaultGatewayPrefix}).Scan(&Gateway); err != nil {
 		g.Log().Errorf(ctx, "load gateway config error: %v", err)
 	}
+	// gateway.debug follow server.debug
+	if !Gateway.Debug && g.Cfg().MustGet(ctx, "server.debug", false).Bool() {
+		Gateway.Debug = true
+	}
+	if Gateway.Debug {
+		g.Log().Info(ctx, "gateway debug mode enabled")
+	}
+
+	// load service config from file
 	services := make(map[string]*model.ServiceConfig)
 	if err := g.Cfg().MustGet(ctx, "services",
 		&services).Scan(&services); err != nil {

@@ -43,6 +43,8 @@ type (
 	GatewayConfig struct {
 		// Prefix route prefix
 		Prefix string `json:"prefix"`
+		// Debug debug mode, default false, equals server.debug
+		Debug bool
 	}
 	// BreakerConfig breaker config
 	BreakerConfig struct {
