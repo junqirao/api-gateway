@@ -146,11 +146,13 @@ func (h *proxy2httpHandler) Do(ctx context.Context, req *ghttp.Request) (err err
 		req.Body = io.NopCloser(bytes.NewBuffer(bs))
 	}
 
-	// ctx from req.Request, processed by goframe at webservice entrance
-	ctx = context.WithValue(ctx, consts.CtxKeyResultCallback, cb)
-
 	// serve proxy
-	h.ServeHTTP(req.Response.RawWriter(), req.Request.WithContext(ctx))
+	h.ServeHTTP(
+		// use unbuffered response raw writer, make sure response body write properly
+		req.Response.RawWriter(),
+		// ctx from req.Request, processed by goframe at webservice entrance
+		req.Request.WithContext(context.WithValue(ctx, consts.CtxKeyResultCallback, cb)),
+	)
 
 	// when err not nil may cause retry and old body may be closed
 	if err != nil && bs != nil {
