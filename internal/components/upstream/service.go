@@ -62,7 +62,7 @@ func (s *Service) Delete(id string) {
 		if upstream.Identity() == id {
 			s.Ups = append(s.Ups[:i], s.Ups[i+1:]...)
 			// reset ref from i+1 -> len(s.Ups
-			for j := i + 1; j < len(s.Ups); j++ {
+			for j := i; j < len(s.Ups); j++ {
 				s.Ups[j].SetRef(j)
 			}
 			return
