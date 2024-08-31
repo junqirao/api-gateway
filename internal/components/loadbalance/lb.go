@@ -16,7 +16,7 @@ type (
 )
 
 func New(strategy ...string) (b Balancer) {
-	st := StrategyRandom
+	st := StrategyRoundRobin
 	if len(strategy) > 0 && strategy[0] != "" {
 		st = strategy[0]
 	}
