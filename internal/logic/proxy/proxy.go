@@ -2,15 +2,18 @@ package proxy
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
 
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/loadbalance"
 	"api-gateway/internal/components/program"
 	"api-gateway/internal/components/response"
 	"api-gateway/internal/components/upstream"
+	"api-gateway/internal/consts"
 	"api-gateway/internal/model"
 	"api-gateway/internal/service"
 )
@@ -78,6 +81,11 @@ func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input 
 		return
 	}
 
+	// write header if debug mode
+	if config.Gateway.Debug {
+		s.writeDebugHeader(input.Request, ups)
+	}
+
 	// circuit breaker and rate limiter
 	cb, code := ups.Allow(ctx)
 	if code != nil {
@@ -117,4 +125,13 @@ func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input 
 		}
 	}
 	return
+}
+
+func (s sProxy) writeDebugHeader(r *ghttp.Request, ups *upstream.Upstream) {
+	header := r.Response.Header()
+	header.Set(consts.HeaderKeyServerId, ups.Instance.Id)
+	header.Set(consts.HeaderKeyServerAddr, fmt.Sprintf("%s:%d", ups.Instance.Host, ups.Instance.Port))
+	header.Set(consts.HeaderKeyServerHostName, ups.Instance.HostName)
+	header.Set(consts.HeaderKeyServiceUpstreamCount, fmt.Sprintf("%d", ups.Parent.CountUpstream()))
+	header.Set(consts.HeaderKeyServiceAvailableUpstreamCount, fmt.Sprintf("%d", ups.Parent.CountAvailableUpstream()))
 }

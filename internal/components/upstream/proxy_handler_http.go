@@ -14,7 +14,6 @@ import (
 
 	"github.com/gogf/gf/v2/net/ghttp"
 
-	"api-gateway/internal/components/config"
 	"api-gateway/internal/consts"
 	"api-gateway/internal/model"
 )
@@ -115,14 +114,14 @@ func (h *proxy2httpHandler) errorHandler(_ http.ResponseWriter, request *http.Re
 }
 
 func (h *proxy2httpHandler) responseModifier(resp *http.Response) error {
-	if config.Gateway.Debug {
-		// add server id
-		resp.Header.Set(consts.HeaderKeyServerId, h.upstream.Instance.Id)
-		resp.Header.Set(consts.HeaderKeyServerAddr, fmt.Sprintf("%s:%d", h.upstream.Instance.Host, h.upstream.Instance.Port))
-		resp.Header.Set(consts.HeaderKeyServerHostName, h.upstream.Instance.HostName)
-		resp.Header.Set(consts.HeaderKeyServiceUpstreamCount, fmt.Sprintf("%d", h.upstream.Parent.CountUpstream()))
-		resp.Header.Set(consts.HeaderKeyServiceAvailableUpstreamCount, fmt.Sprintf("%d", h.upstream.Parent.CountAvailableUpstream()))
-	}
+	// if config.Gateway.Debug {
+	// 	// add server id
+	// 	resp.Header.Set(consts.HeaderKeyServerId, h.upstream.Instance.Id)
+	// 	resp.Header.Set(consts.HeaderKeyServerAddr, fmt.Sprintf("%s:%d", h.upstream.Instance.Host, h.upstream.Instance.Port))
+	// 	resp.Header.Set(consts.HeaderKeyServerHostName, h.upstream.Instance.HostName)
+	// 	resp.Header.Set(consts.HeaderKeyServiceUpstreamCount, fmt.Sprintf("%d", h.upstream.Parent.CountUpstream()))
+	// 	resp.Header.Set(consts.HeaderKeyServiceAvailableUpstreamCount, fmt.Sprintf("%d", h.upstream.Parent.CountAvailableUpstream()))
+	// }
 	// if return err!=nil will call h.errorHandler
 	return nil
 }
