@@ -11,3 +11,9 @@ const (
 	HeaderKeyServiceUpstreamCount          = "X-Svc-Upstream-Count"
 	HeaderKeyServiceAvailableUpstreamCount = "X-Svc-Available-Upstream-Count"
 )
+
+const (
+	ModuleNameLoadBalance = "load_balance"
+	ModuleNameRateLimiter = "rate_limiter"
+	ModuleNameBreaker     = "breaker"
+)

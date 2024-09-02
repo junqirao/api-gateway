@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	registry "github.com/junqirao/simple-registry"
 
+	"api-gateway/internal/components/grace"
 	"api-gateway/internal/components/response"
 )
 
@@ -25,6 +27,7 @@ func TestHttpSrv2(t *testing.T) {
 }
 
 func startEchoServer(name string, port int) {
+
 	id := fmt.Sprintf("server#%v", name)
 	server := g.Server(id)
 	server.SetPort(port)
@@ -33,6 +36,19 @@ func startEchoServer(name string, port int) {
 			st := r.GetQuery("status", 200).Int()
 			fmt.Printf("echo: %d\n", st)
 			response.WriteJSON(r, response.NewCode(st, id, st))
+		})
+		group.ALL("/registry", func(r *ghttp.Request) {
+			services, err := registry.Registry.GetServices(r.Context())
+			if err != nil {
+				response.WriteJSON(r, response.NewCode(500, id, 500))
+				return
+			}
+			m := make(map[string][]*registry.Instance)
+			for k, v := range services {
+				m[k] = v.Instances()
+			}
+			r.Response.WriteHeader(http.StatusOK)
+			r.Response.WriteJson(m)
 		})
 	})
 	cfg := registry.Config{}
@@ -46,5 +62,9 @@ func startEchoServer(name string, port int) {
 		panic(err)
 		return
 	}
+	grace.Register(context.Background(), "deregister_registry", func() {
+		_ = registry.Registry.Deregister(context.Background())
+	})
 	server.Run()
+	grace.ExecAndExit(context.Background())
 }

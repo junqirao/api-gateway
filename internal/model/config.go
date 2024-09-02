@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/util/gconv"
 	"github.com/google/uuid"
 	"github.com/sony/gobreaker"
 )
@@ -28,9 +30,6 @@ type (
 	LoadBalanceConfig struct {
 		// Strategy load balance strategy: random, round_robin
 		Strategy string `json:"strategy"` // default random
-		// Weight runtime_weight = LoadBalanceConfig.Weight + basic_weight,
-		// runtime_weight will dynamic adjust according to running performance indicators
-		Weight int `json:"weight"`
 	}
 	// RateLimiterConfig rate limiter config
 	RateLimiterConfig struct {
@@ -130,4 +129,8 @@ func (s *ServiceConfig) Clone() *ServiceConfig {
 		RateLimiter:  s.RateLimiter,
 		Breaker:      s.Breaker,
 	}
+}
+
+func ValueChanged(v1, v2 any) bool {
+	return gmd5.MustEncryptString(gconv.String(v1)) != gmd5.MustEncryptString(gconv.String(v2))
 }

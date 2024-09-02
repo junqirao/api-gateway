@@ -9,10 +9,10 @@ import (
 )
 
 func Init(ctx context.Context) {
-	// config init
-	config.Init(ctx)
 	// registry
 	registry.Init(ctx)
+	// biz config init
+	config.Init(ctx)
 	// upstream management
 	upstream.Init(ctx)
 }

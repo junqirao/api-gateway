@@ -1,8 +1,10 @@
 package loadbalance
 
 import (
-	"fmt"
+	"context"
 	"sync"
+
+	"github.com/gogf/gf/v2/frame/g"
 
 	"api-gateway/internal/components/config"
 )
@@ -11,19 +13,20 @@ var (
 	m = sync.Map{} // service_name(routing_key):Balancer
 )
 
+// GetOrCreate get or create load balancer
 func GetOrCreate(routingKey string) Balancer {
-	var (
-		cfg, _ = config.GetServiceConfig(routingKey)
-	)
-
-	b, ok := m.Load(key(routingKey, cfg.LoadBalance.Strategy))
+	b, ok := m.Load(routingKey)
 	if !ok || b == nil {
-		b = New(cfg.LoadBalance.Strategy)
-		m.Store(key(routingKey, cfg.LoadBalance.Strategy), b)
+		return Update(routingKey)
 	}
 	return b.(Balancer)
 }
 
-func key(routingKey string, strategy string) string {
-	return fmt.Sprintf("%s_%s", routingKey, strategy)
+// Update load balancer instance with latest config
+func Update(routingKey string) Balancer {
+	cfg, _ := config.GetServiceConfig(routingKey)
+	b := New(cfg.LoadBalance.Strategy)
+	m.Store(routingKey, b)
+	g.Log().Infof(context.Background(), "service %s load-balancer updated: %s", routingKey, cfg.LoadBalance.Strategy)
+	return b
 }

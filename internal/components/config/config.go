@@ -2,17 +2,23 @@ package config
 
 import (
 	"context"
-	"sync"
+	"errors"
+	"strings"
 
 	"github.com/gogf/gf/v2/frame/g"
+	registry "github.com/junqirao/simple-registry"
 
+	"api-gateway/internal/consts"
 	"api-gateway/internal/model"
 )
 
 var (
 	// Gateway global config
 	Gateway *model.GatewayConfig
-	cache   sync.Map // service_name:*model.ServiceConfig
+	// StorageSeparator same as registry.storage.separator
+	StorageSeparator = g.Cfg().MustGet(context.Background(), "registry.storage.separator", "/").String()
+	// StorageNameServiceConfig name
+	StorageNameServiceConfig = "service_config"
 )
 
 // default value define
@@ -39,10 +45,42 @@ var (
 )
 
 func GetServiceConfig(serviceName string) (*model.ServiceConfig, bool) {
-	if v, ok := cache.Load(serviceName); ok {
-		return v.(*model.ServiceConfig), true
+	ctx := context.Background()
+	kvs, err := registry.Storages.GetStorage(StorageNameServiceConfig).Get(ctx, serviceName)
+	switch {
+	case errors.Is(err, registry.ErrStorageNotFound):
+	case err == nil:
+	default:
+		g.Log().Infof(ctx, "failed to get service %s config, using default. result=%v", StorageNameServiceConfig, err)
+		return defaultServiceConfig.Clone(), false
 	}
-	return defaultServiceConfig.Clone(), false
+	if len(kvs) == 0 {
+		return defaultServiceConfig.Clone(), false
+	}
+
+	cfg := defaultServiceConfig.Clone()
+	for _, kv := range kvs {
+		parts := strings.Split(kv.Key, StorageSeparator)
+		if len(parts) < 1 {
+			// drop invalid key
+			continue
+		}
+		moduleName := parts[len(parts)-1]
+		switch moduleName {
+		case consts.ModuleNameLoadBalance:
+			err = kv.Value.Scan(&cfg.LoadBalance)
+		case consts.ModuleNameBreaker:
+			err = kv.Value.Scan(&cfg.Breaker)
+		case consts.ModuleNameRateLimiter:
+			err = kv.Value.Scan(&cfg.RateLimiter)
+		}
+		if err != nil {
+			g.Log().Errorf(ctx, "failed to scan service %s config, using default config: %s", serviceName, err.Error())
+			return defaultServiceConfig.Clone(), false
+		}
+	}
+
+	return cfg, true
 }
 
 func loadConfigs(ctx context.Context) {
@@ -58,15 +96,4 @@ func loadConfigs(ctx context.Context) {
 	if Gateway.Debug {
 		g.Log().Info(ctx, "gateway debug mode enabled")
 	}
-
-	// load service config from file
-	services := make(map[string]*model.ServiceConfig)
-	if err := g.Cfg().MustGet(ctx, "services",
-		&services).Scan(&services); err != nil {
-		g.Log().Errorf(ctx, "load service config error: %v", err)
-	}
-	for k, v := range services {
-		cache.Store(k, v)
-	}
-	g.Log().Infof(ctx, "service config loaded: %d", len(services))
 }

@@ -1,11 +1,15 @@
 package upstream
 
 import (
+	"context"
 	"sync"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 
+	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/loadbalance"
+	"api-gateway/internal/consts"
 	"api-gateway/internal/model"
 )
 
@@ -27,12 +31,14 @@ type (
 )
 
 func NewService(routingKey string, cfg model.ServiceConfig) *Service {
-	return &Service{
+	s := &Service{
 		mu:         sync.RWMutex{},
 		ups:        make([]*Upstream, 0),
 		Config:     cfg,
 		RoutingKey: routingKey,
 	}
+	config.RegisterConfigChangeEventHandler(routingKey, s.configEventHandler)
+	return s
 }
 
 func GetService(routingKey string) (*Service, bool) {
@@ -126,4 +132,18 @@ func (s *Service) CountAvailableUpstream() int {
 		s.available = cnt
 	}
 	return s.available
+}
+
+func (s *Service) configEventHandler(t config.EventType, module, key string, value interface{}) {
+	g.Log().Infof(context.Background(), "config event: type=%s, key=%s, value=%v", t, key, value)
+	if module == consts.ModuleNameLoadBalance {
+		// update lb instance
+		loadbalance.Update(s.RoutingKey)
+		return
+	}
+	// maybe has some way better than update all at once
+	for _, up := range s.ups {
+		// async update
+		go up.updateConfig(module)
+	}
 }
