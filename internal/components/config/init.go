@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	Management *ManagementHandler
+	management *managementHandler
 	evs        sync.Map // service_name(routing_key):ChangeEvent
 )
 
@@ -25,7 +25,7 @@ func Init(ctx context.Context) {
 	// init config update event bus
 	initConfigUpdateEventBus()
 	// init management
-	Management = new(ManagementHandler)
+	management = new(managementHandler)
 }
 
 func initConfigUpdateEventBus() {

@@ -12,7 +12,7 @@ import (
 )
 
 type (
-	ManagementHandler struct {
+	managementHandler struct {
 	}
 	ManagementGetConfigRequest struct {
 		ServiceName string `json:"service_name"`
@@ -35,7 +35,7 @@ type (
 	}
 )
 
-func (h *ManagementHandler) Get(r *ghttp.Request) {
+func (h *managementHandler) Get(r *ghttp.Request) {
 	req := new(ManagementGetConfigRequest)
 	if err := r.Parse(&req); err != nil {
 		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err.Error()))
@@ -46,7 +46,7 @@ func (h *ManagementHandler) Get(r *ghttp.Request) {
 	response.WriteData(r, response.CodeDefaultSuccess, &ManagementGetConfigResponse{Default: !ok, Config: config})
 }
 
-func (h *ManagementHandler) SetLoadBalanceConfig(r *ghttp.Request) {
+func (h *managementHandler) SetLoadBalanceConfig(r *ghttp.Request) {
 	req := new(ManagementSetLoadBalanceConfigRequest)
 	if err := r.Parse(&req); err != nil {
 		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err.Error()))
@@ -56,7 +56,7 @@ func (h *ManagementHandler) SetLoadBalanceConfig(r *ghttp.Request) {
 	h.setConfig(r, req.ServiceName, consts.ModuleNameLoadBalance, req.Config)
 }
 
-func (h *ManagementHandler) SetBreakerConfig(r *ghttp.Request) {
+func (h *managementHandler) SetBreakerConfig(r *ghttp.Request) {
 	req := new(ManagementSetBreakerConfigRequest)
 	if err := r.Parse(&req); err != nil {
 		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err.Error()))
@@ -66,7 +66,7 @@ func (h *ManagementHandler) SetBreakerConfig(r *ghttp.Request) {
 	h.setConfig(r, req.ServiceName, consts.ModuleNameBreaker, req.Config)
 }
 
-func (h *ManagementHandler) SetRateLimiterConfig(r *ghttp.Request) {
+func (h *managementHandler) SetRateLimiterConfig(r *ghttp.Request) {
 	req := new(ManagementSetRateLimiterConfigRequest)
 	if err := r.Parse(&req); err != nil {
 		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err.Error()))
@@ -76,7 +76,7 @@ func (h *ManagementHandler) SetRateLimiterConfig(r *ghttp.Request) {
 	h.setConfig(r, req.ServiceName, consts.ModuleNameRateLimiter, req.Config)
 }
 
-func (h *ManagementHandler) setConfig(r *ghttp.Request, serviceName, module string, config any) {
+func (h *managementHandler) setConfig(r *ghttp.Request, serviceName, module string, config any) {
 	err := registry.Storages.GetStorage(StorageNameServiceConfig).
 		Set(r.Context(), fmt.Sprintf("%s%s%s", serviceName, StorageSeparator, module), config)
 	if err != nil {
