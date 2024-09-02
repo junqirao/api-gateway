@@ -8,6 +8,7 @@ import (
 
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/loadbalance"
+	"api-gateway/internal/components/program"
 	"api-gateway/internal/components/response"
 	"api-gateway/internal/components/upstream"
 	"api-gateway/internal/model"
@@ -69,12 +70,15 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 }
 
 func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input *model.ReverseProxyInput) (canRetry bool, code *response.Code) {
+	// load balance
 	ups, ok := upstreams.Select(input.Request, loadbalance.GetOrCreate(input.RoutingKey).Selector)
 	if !ok {
 		// 503
 		code = response.CodeUnavailable.WithDetail(input.RoutingKey)
 		return
 	}
+
+	// circuit breaker and rate limiter
 	cb, code := ups.Allow(ctx)
 	if code != nil {
 		// 429,500,503
@@ -84,6 +88,21 @@ func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input 
 		}
 		return
 	}
+
+	// program
+	programs, err := program.GetOrCreate(input.RoutingKey)
+	if err != nil {
+		g.Log().Errorf(ctx, "get or create program failed: %v", err)
+	} else {
+		var last string
+		last, err = programs.Exec(ctx, nil)
+		if err != nil {
+			code = response.CodeBadRequest.WithMessage(last).WithDetail(err.Error())
+			return
+		}
+	}
+
+	// proxy
 	e := ups.Do(ctx, input.Request, cb)
 	if e != nil {
 		// can retry

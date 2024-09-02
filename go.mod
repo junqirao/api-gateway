@@ -5,7 +5,7 @@ go 1.21.7
 require (
 	github.com/gogf/gf/v2 v2.7.2
 	github.com/google/uuid v1.6.0
-	github.com/junqirao/simple-registry v0.0.2-rc3
+	github.com/junqirao/simple-registry v0.0.2-rc3.0.20240902113202-33161e9f29bf
 	github.com/sony/gobreaker v1.0.0
 	golang.org/x/time v0.6.0
 )
@@ -16,6 +16,7 @@ require (
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
+	github.com/expr-lang/expr v1.16.9 // indirect
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect

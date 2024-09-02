@@ -8,6 +8,7 @@ import (
 var (
 	CodeDefaultSuccess = NewCode(0, "success", http.StatusOK)
 	CodeDefaultFailure = NewCode(500, "failed", http.StatusInternalServerError)
+	CodeBadRequest     = NewCode(400, "bad request", http.StatusBadRequest)
 
 	CodeInvalidParameter = NewCode(400, "invalid parameter", http.StatusBadRequest)
 	CodeUnauthorized     = NewCode(401, "unauthorized", http.StatusUnauthorized)

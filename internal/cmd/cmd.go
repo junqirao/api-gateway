@@ -10,6 +10,7 @@ import (
 	"github.com/gogf/gf/v2/os/gcmd"
 
 	"api-gateway/internal/components/config"
+	"api-gateway/internal/components/program"
 	"api-gateway/internal/consts"
 	"api-gateway/internal/controller/reverse"
 )
@@ -41,6 +42,17 @@ var (
 						group.PUT(consts.ModuleNameLoadBalance, config.Management.SetLoadBalanceConfig)
 						group.PUT(consts.ModuleNameBreaker, config.Management.SetBreakerConfig)
 						group.PUT(consts.ModuleNameRateLimiter, config.Management.SetRateLimiterConfig)
+					})
+				})
+				group.Group("/program", func(group *ghttp.RouterGroup) {
+					group.Group("/variable", func(group *ghttp.RouterGroup) {
+						group.GET("/", program.Management.GetGlobalVariables)
+						group.PUT("/", program.Management.SetGlobalVariables)
+					})
+					group.Group("/info", func(group *ghttp.RouterGroup) {
+						group.GET("/", program.Management.GetProgram)
+						group.DELETE("/", program.Management.DeleteProgram)
+						group.PUT("/", program.Management.SetProgram)
 					})
 				})
 			})
