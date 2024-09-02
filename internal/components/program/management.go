@@ -13,52 +13,61 @@ import (
 )
 
 var (
-	Management = &ManagementHandler{}
+	management = &managementHandler{}
 )
 
 type (
-	ManagementHandler struct {
+	managementHandler struct {
 	}
 
+	// ManagementGetProgramRequest get program
 	ManagementGetProgramRequest struct {
 		ServiceName string `json:"service_name"`
 	}
+	// ManagementDeleteProgramRequest delete program
 	ManagementDeleteProgramRequest struct {
 		ServiceName string `json:"service_name"`
 		Name        string `json:"name"`
 	}
+	// ManagementSetGlobalVariablesRequest set global
 	ManagementSetGlobalVariablesRequest struct {
 		Key   string `json:"key"`
 		Value string `json:"value"`
 	}
+	// ManagementDeleteGlobalVariablesRequest delete global
+	ManagementDeleteGlobalVariablesRequest struct {
+		Key string `json:"key"`
+	}
 )
 
-func (h *ManagementHandler) GetProgram(r *ghttp.Request) {
+// GetProgram get
+func (h *managementHandler) GetProgram(r *ghttp.Request) {
 	req := new(ManagementGetProgramRequest)
-	if err := r.Parse(&req); err != nil || req.ServiceName == "" {
+	if err := r.Parse(&req); err != nil {
 		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err))
 		return
 	}
 
-	kvs, err := registry.Storages.GetStorage(storageNameProgram).Get(r.Context())
+	kvs, err := registry.Storages.GetStorage(storageNameProgram).Get(r.Context(), req.ServiceName)
 	if err != nil {
 		response.WriteJSON(r, response.CodeDefaultFailure.WithDetail(err.Error()))
 		return
 	}
 
-	infos := make([]*model.ProgramInfo, 0)
+	res := make(map[string][]*model.ProgramInfo)
 	for _, kv := range kvs {
 		info := new(model.ProgramInfo)
 		if err = kv.Value.Scan(&info); err != nil {
 			g.Log().Warningf(r.Context(), "scan program info failed: %v", err)
 			continue
 		}
-		infos = append(infos, info)
+		res[info.ServiceName] = append(res[info.ServiceName], info)
 	}
-	response.WriteData(r, response.CodeDefaultSuccess, infos)
+	response.WriteData(r, response.CodeDefaultSuccess, res)
 }
 
-func (h *ManagementHandler) SetProgram(r *ghttp.Request) {
+// SetProgram set
+func (h *managementHandler) SetProgram(r *ghttp.Request) {
 	req := new(model.ProgramInfo)
 	if err := r.Parse(&req); err != nil {
 		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err.Error()))
@@ -74,7 +83,8 @@ func (h *ManagementHandler) SetProgram(r *ghttp.Request) {
 	response.WriteJSON(r, response.CodeDefaultSuccess)
 }
 
-func (h *ManagementHandler) DeleteProgram(r *ghttp.Request) {
+// DeleteProgram delete
+func (h *managementHandler) DeleteProgram(r *ghttp.Request) {
 	req := new(ManagementDeleteProgramRequest)
 	if err := r.Parse(&req); err != nil {
 		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err.Error()))
@@ -90,11 +100,13 @@ func (h *ManagementHandler) DeleteProgram(r *ghttp.Request) {
 	response.WriteJSON(r, response.CodeDefaultSuccess)
 }
 
-func (h *ManagementHandler) GetGlobalVariables(r *ghttp.Request) {
+// GetGlobalVariables get global variable
+func (h *managementHandler) GetGlobalVariables(r *ghttp.Request) {
 	response.WriteData(r, response.CodeDefaultSuccess, variables.GetGlobalVariables(r.Context()))
 }
 
-func (h *ManagementHandler) SetGlobalVariables(r *ghttp.Request) {
+// SetGlobalVariables set global variable
+func (h *managementHandler) SetGlobalVariables(r *ghttp.Request) {
 	req := new(ManagementSetGlobalVariablesRequest)
 	if err := r.Parse(&req); err != nil {
 		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err.Error()))
@@ -102,6 +114,20 @@ func (h *ManagementHandler) SetGlobalVariables(r *ghttp.Request) {
 	}
 
 	if err := variables.SetGlobalVariable(r.Context(), req.Key, req.Value); err != nil {
+		response.WriteJSON(r, response.CodeDefaultFailure.WithDetail(err.Error()))
+		return
+	}
+	response.WriteJSON(r, response.CodeDefaultSuccess)
+}
+
+// DeleteGlobalVariables delete global variable
+func (h *managementHandler) DeleteGlobalVariables(r *ghttp.Request) {
+	req := new(ManagementDeleteGlobalVariablesRequest)
+	if err := r.Parse(&req); err != nil {
+		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err.Error()))
+		return
+	}
+	if err := variables.DeleteGlobalVariable(r.Context(), req.Key); err != nil {
 		response.WriteJSON(r, response.CodeDefaultFailure.WithDetail(err.Error()))
 		return
 	}

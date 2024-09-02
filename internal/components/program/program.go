@@ -21,7 +21,11 @@ const (
 	envKeySetGlobalVariable    = "setGlobalVariable"
 	envKeyNewResultWrapper     = "newResultWrapper"
 	envKeyExprMultilineWrapper = "exprMultilineWrapper"
-	envKeyLog                  = "log"
+	envKeyLogger               = "logger"
+	envKeyRequest              = "request"
+	envKeyResponse             = "response"
+	envKeyUpstream             = "upstream"
+	envKeyCtx                  = "ctx"
 )
 
 type (
@@ -81,12 +85,9 @@ func (p *Program) Exec(ctx context.Context, env ...map[string]interface{}) error
 	}
 
 	e[envKeyGlobalVariable] = variables.GetGlobalVariables(ctx)
+	e[envKeyCtx] = ctx
 	e[envKeyExprMultilineWrapper] = p.exprMultilineWrapper
 	e[envKeyNewResultWrapper] = newResultWrapper
-	e[envKeyLog] = func(str string) bool {
-		g.Log().Info(ctx, str)
-		return true
-	}
 	e[envKeySetGlobalVariable] = func(key string, value interface{}) error {
 		return variables.SetGlobalVariable(ctx, key, value)
 	}

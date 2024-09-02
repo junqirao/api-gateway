@@ -9,6 +9,14 @@ import (
 	registry "github.com/junqirao/simple-registry"
 )
 
+type test struct {
+}
+
+func (t test) Print() bool {
+	fmt.Println("test-ok")
+	return true
+}
+
 func TestProgram(t *testing.T) {
 	cfg := registry.Config{}
 	err := g.Cfg().MustGet(context.Background(), "registry").Struct(&cfg)
@@ -30,6 +38,7 @@ func TestProgram(t *testing.T) {
 		function2("aaa");
 		setGlobalVariable("test_value", 123);
 		print(global.test_value);
+		test_struct.Print();
 		`)
 	if err != nil {
 		t.Fatal(err)
@@ -46,6 +55,7 @@ func TestProgram(t *testing.T) {
 			fmt.Printf("%v\n", s)
 			return true
 		},
+		"test_struct": &test{},
 	})
 	if err != nil {
 		t.Fatal(err)

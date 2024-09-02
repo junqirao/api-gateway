@@ -95,7 +95,7 @@ func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input 
 		g.Log().Errorf(ctx, "get or create program failed: %v", err)
 	} else {
 		var last string
-		last, err = programs.Exec(ctx, nil)
+		last, err = programs.Exec(ctx, program.BuildEnvFromRequest(input.Request, ups.Instance))
 		if err != nil {
 			code = response.CodeBadRequest.WithMessage(last).WithDetail(err.Error())
 			return

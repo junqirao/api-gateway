@@ -28,6 +28,7 @@ type (
 	}
 )
 
+// GetGlobalVariables from local cache
 func (h *variableHandler) GetGlobalVariables(_ context.Context) map[string]interface{} {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -35,6 +36,7 @@ func (h *variableHandler) GetGlobalVariables(_ context.Context) map[string]inter
 	return maps.Clone(h.global)
 }
 
+// SetGlobalVariable set global variable
 func (h *variableHandler) SetGlobalVariable(ctx context.Context, key string, value interface{}) (err error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -42,6 +44,18 @@ func (h *variableHandler) SetGlobalVariable(ctx context.Context, key string, val
 	err = registry.Storages.GetStorage(storageNameVariable).Set(ctx, key, value)
 	if err == nil {
 		h.global[key] = gconv.String(value)
+	}
+	return
+}
+
+// DeleteGlobalVariable delete global variable
+func (h *variableHandler) DeleteGlobalVariable(ctx context.Context, key string) (err error) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	err = registry.Storages.GetStorage(storageNameVariable).Delete(ctx, key)
+	if err == nil {
+		delete(h.global, key)
 	}
 	return
 }
