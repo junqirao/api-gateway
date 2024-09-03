@@ -1,6 +1,6 @@
 # API Gateway
 
-[中文文档](/doc/readme_cn.md) | [English Doc](./README.md)
+[中文文档](/README_CN) | [English Doc](/README)
 
 configuration hot updates supported programmable api gateway
 
