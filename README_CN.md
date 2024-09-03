@@ -83,35 +83,35 @@ terminate_if(request.Header.Get("Authorization") == "","authorization is empty")
 
 request object
 
-| Name               | Type     | Description | Usage                                       |
-|--------------------|----------|-------------|---------------------------------------------|
-| request.RemoteAddr | String   | 请求客户端地址     | request.RemoteAddr                          |
-| request.Host       | String   | 请求主机        | request.Host                                |
-| request.URL        | String   | 请求url       | request.URL                                 |
-| request.Method     | String   | 请求方法        | request.Method                              |
-| request.Header     | Object   | 请求头         | -                                           |
-| request.Header.Add | Function | 添加请求头       | request.Header.Add(key string,value string) |
-| request.Header.Set | Function | 设置请求头       | request.Header.Set(key string,value string) |
-| request.Header.Get | Function | 获取请求头的值     | request.Header.Get(key string)              |
+| Name               | Type     | Description | Usage                                             |
+|--------------------|----------|-------------|---------------------------------------------------|
+| request.RemoteAddr | String   | 请求客户端地址     | ```request.RemoteAddr```                          |
+| request.Host       | String   | 请求主机        | ```request.Host```                                |
+| request.URL        | String   | 请求url       | ```request.URL```                                 |
+| request.Method     | String   | 请求方法        | ```request.Method```                              |
+| request.Header     | Object   | 请求头         | -                                                 |
+| request.Header.Add | Function | 添加请求头       | ```request.Header.Add(key string,value string)``` |
+| request.Header.Set | Function | 设置请求头       | ```request.Header.Set(key string,value string)``` |
+| request.Header.Get | Function | 获取请求头的值     | ```request.Header.Get(key string)```              |
 
 ##### response
 
 response object
 
-| Name                | Type     | Description | Usage                                        |
-|---------------------|----------|-------------|----------------------------------------------|
-| response.Header.Add | Function | 添加响应头值      | response.Header.Add(key string,value string) |
-| response.Header.Set | Function | 设置响应头值      | response.Header.Set(key string,value string) |
-| response.Header.Get | Function | 获取响应头值      | response.Header.Get(key string)              |
+| Name                | Type     | Description | Usage                                              |
+|---------------------|----------|-------------|----------------------------------------------------|
+| response.Header.Add | Function | 添加响应头值      | ```response.Header.Add(key string,value string)``` |
+| response.Header.Set | Function | 设置响应头值      | ```response.Header.Set(key string,value string)``` |
+| response.Header.Get | Function | 获取响应头值      | ```response.Header.Get(key string)```              |
 
 ##### global
 
 全局变量，这个值在所有注册到同一注册中心的网关服务中是共享的
 
-| Name       | Type     | Description | Usage                               |
-|------------|----------|-------------|-------------------------------------|
-| global     | Map      | 全局变量map实例   | global.key / global["key"]          |
-| set_global | Function | 设置全局变量      | set_global(key string,value string) |
+| Name       | Type     | Description | Usage                                     |
+|------------|----------|-------------|-------------------------------------------|
+| global     | Map      | 全局变量map实例   | ```global.key / global["key"]```          |
+| set_global | Function | 设置全局变量      | ```set_global(key string,value string)``` |
 
 ##### ctx
 
@@ -121,31 +121,31 @@ response object
 
 logger object
 
-| Name          | Type     | Description     | Usage                                                |
-|---------------|----------|-----------------|------------------------------------------------------|
-| logger.Info   | Function | 记录info级别日志      | logger.Info(ctx context, value any)                  |
-| logger.Warn   | Function | 记录warn级别日志      | logger.Warn(ctx context, value any)                  |
-| logger.Error  | Function | 记录error级别日志     | logger.Error(ctx context, value any)                 |
-| logger.Infof  | Function | 记录格式化的info级别日志  | logger.Infof(ctx context, format string, value any)  |
-| logger.Warnf  | Function | 记录格式化的warn级别日志  | logger.Warnf(ctx context, format string, value any)  |
-| logger.Errorf | Function | 记录格式化的error级别日志 | logger.Errorf(ctx context, format string, value any) |
+| Name          | Type     | Description     | Usage                                                      |
+|---------------|----------|-----------------|------------------------------------------------------------|
+| logger.Info   | Function | 记录info级别日志      | ```logger.Info(ctx context, value any)```                  |
+| logger.Warn   | Function | 记录warn级别日志      | ```logger.Warn(ctx context, value any)```                  |
+| logger.Error  | Function | 记录error级别日志     | ```logger.Error(ctx context, value any)```                 |
+| logger.Infof  | Function | 记录格式化的info级别日志  | ```logger.Infof(ctx context, format string, value any)```  |
+| logger.Warnf  | Function | 记录格式化的warn级别日志  | ```logger.Warnf(ctx context, format string, value any)```  |
+| logger.Errorf | Function | 记录格式化的error级别日志 | ```logger.Errorf(ctx context, format string, value any)``` |
 
 ##### upstream
 
-| Name                 | Type    | Description | Usage                |
-|----------------------|---------|-------------|----------------------|
-| upstream.Id          | String  | 上游实例id      | upstream.Id          |
-| upstream.Host        | String  | 上游主机        | upstream.Host        |
-| upstream.HostName    | String  | 上游主机名       | upstream.HostName    |
-| upstream.Port        | Integer | 上游端口        | upstream.Port        |
-| upstream.ServiceName | String  | 上游服务名       | upstream.ServiceName |
-| upstream.Meta        | Map     | 上游元数据       | upstream.Meta        |
+| Name                 | Type    | Description | Usage                      |
+|----------------------|---------|-------------|----------------------------|
+| upstream.Id          | String  | 上游实例id      | ```upstream.Id```          |
+| upstream.Host        | String  | 上游主机        | ```upstream.Host```        |
+| upstream.HostName    | String  | 上游主机名       | ```upstream.HostName```    |
+| upstream.Port        | Integer | 上游端口        | ```upstream.Port```        |
+| upstream.ServiceName | String  | 上游服务名       | ```upstream.ServiceName``` |
+| upstream.Meta        | Map     | 上游元数据       | ```upstream.Meta```        |
 
 ##### terminate_if
 
-| Name         | Type     | Description | Usage                                                 |
-|--------------|----------|-------------|-------------------------------------------------------|
-| terminate_if | Function | 条件终止        | terminate_if(condition bool, reason [optional]string) |
+| Name         | Type     | Description | Usage                                                       |
+|--------------|----------|-------------|-------------------------------------------------------------|
+| terminate_if | Function | 条件终止        | ```terminate_if(condition bool, reason [optional]string)``` |
 
 ## 配置示例
 

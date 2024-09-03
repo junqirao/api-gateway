@@ -85,35 +85,35 @@ empty"
 
 request object
 
-| Name               | Type     | Description              | Usage                                       |
-|--------------------|----------|--------------------------|---------------------------------------------|
-| request.RemoteAddr | String   | request remote address   | request.RemoteAddr                          |
-| request.Host       | String   | request host             | request.Host                                |
-| request.URL        | String   | request url              | request.URL                                 |
-| request.Method     | String   | request method           | request.Method                              |
-| request.Header     | Object   | request header           | -                                           |
-| request.Header.Add | Function | add request header value | request.Header.Add(key string,value string) |
-| request.Header.Set | Function | set request header value | request.Header.Set(key string,value string) |
-| request.Header.Get | Function | get request header value | request.Header.Get(key string)              |
+| Name               | Type     | Description              | Usage                                             |
+|--------------------|----------|--------------------------|---------------------------------------------------|
+| request.RemoteAddr | String   | request remote address   | ```request.RemoteAddr```                          |
+| request.Host       | String   | request host             | ```request.Host```                                |
+| request.URL        | String   | request url              | ```request.URL```                                 |
+| request.Method     | String   | request method           | ```request.Method```                              |
+| request.Header     | Object   | request header           | -                                                 |
+| request.Header.Add | Function | add request header value | ```request.Header.Add(key string,value string)``` |
+| request.Header.Set | Function | set request header value | ```request.Header.Set(key string,value string)``` |
+| request.Header.Get | Function | get request header value | ```request.Header.Get(key string)```              |
 
 ##### response
 
 response object
 
-| Name                | Type     | Description               | Usage                                        |
-|---------------------|----------|---------------------------|----------------------------------------------|
-| response.Header.Add | Function | add response header value | response.Header.Add(key string,value string) |
-| response.Header.Set | Function | set response header value | response.Header.Set(key string,value string) |
-| response.Header.Get | Function | get response header value | response.Header.Get(key string)              |
+| Name                | Type     | Description               | Usage                                              |
+|---------------------|----------|---------------------------|----------------------------------------------------|
+| response.Header.Add | Function | add response header value | ```response.Header.Add(key string,value string)``` |
+| response.Header.Set | Function | set response header value | ```response.Header.Set(key string,value string)``` |
+| response.Header.Get | Function | get response header value | ```response.Header.Get(key string)```              |
 
 ##### global
 
 global variable, this value is shared across all api-gateway instances.
 
-| Name       | Type     | Description         | Usage                               |
-|------------|----------|---------------------|-------------------------------------|
-| global     | Map      | global variable map | global.key / global["key"]          |
-| set_global | Function | set global variable | set_global(key string,value string) |
+| Name       | Type     | Description         | Usage                                     |
+|------------|----------|---------------------|-------------------------------------------|
+| global     | Map      | global variable map | ```global.key / global["key"]```          |
+| set_global | Function | set global variable | ```set_global(key string,value string)``` |
 
 ##### ctx
 
@@ -123,31 +123,31 @@ context from request, use as parameter of function
 
 logger object
 
-| Name          | Type     | Description                   | Usage                                                |
-|---------------|----------|-------------------------------|------------------------------------------------------|
-| logger.Info   | Function | log with info level           | logger.Info(ctx context, value any)                  |
-| logger.Warn   | Function | log with warn level           | logger.Warn(ctx context, value any)                  |
-| logger.Error  | Function | log with error level          | logger.Error(ctx context, value any)                 |
-| logger.Infof  | Function | formated log with info level  | logger.Infof(ctx context, format string, value any)  |
-| logger.Warnf  | Function | formated log with warn level  | logger.Warnf(ctx context, format string, value any)  |
-| logger.Errorf | Function | formated log with error level | logger.Errorf(ctx context, format string, value any) |
+| Name          | Type     | Description                   | Usage                                                      |
+|---------------|----------|-------------------------------|------------------------------------------------------------|
+| logger.Info   | Function | log with info level           | ```logger.Info(ctx context, value any)```                  |
+| logger.Warn   | Function | log with warn level           | ```logger.Warn(ctx context, value any)```                  |
+| logger.Error  | Function | log with error level          | ```logger.Error(ctx context, value any)```                 |
+| logger.Infof  | Function | formated log with info level  | ```logger.Infof(ctx context, format string, value any)```  |
+| logger.Warnf  | Function | formated log with warn level  | ```logger.Warnf(ctx context, format string, value any)```  |
+| logger.Errorf | Function | formated log with error level | ```logger.Errorf(ctx context, format string, value any)``` |
 
 ##### upstream
 
-| Name                 | Type    | Description           | Usage                |
-|----------------------|---------|-----------------------|----------------------|
-| upstream.Id          | String  | upstream instance id  | upstream.Id          |
-| upstream.Host        | String  | upstream host         | upstream.Host        |
-| upstream.HostName    | String  | upstream host name    | upstream.HostName    |
-| upstream.Port        | Integer | upstream port         | upstream.Port        |
-| upstream.ServiceName | String  | upstream service name | upstream.ServiceName |
-| upstream.Meta        | Map     | upstream metadata     | upstream.Meta        |
+| Name                 | Type    | Description           | Usage                      |
+|----------------------|---------|-----------------------|----------------------------|
+| upstream.Id          | String  | upstream instance id  | ```upstream.Id```          |
+| upstream.Host        | String  | upstream host         | ```upstream.Host```        |
+| upstream.HostName    | String  | upstream host name    | ```upstream.HostName```    |
+| upstream.Port        | Integer | upstream port         | ```upstream.Port```        |
+| upstream.ServiceName | String  | upstream service name | ```upstream.ServiceName``` |
+| upstream.Meta        | Map     | upstream metadata     | ```upstream.Meta```        |
 
 ##### terminate_if
 
-| Name         | Type     | Description                      | Usage                                                 |
-|--------------|----------|----------------------------------|-------------------------------------------------------|
-| terminate_if | Function | terminate request with condition | terminate_if(condition bool, reason [optional]string) |
+| Name         | Type     | Description                      | Usage                                                       |
+|--------------|----------|----------------------------------|-------------------------------------------------------------|
+| terminate_if | Function | terminate request with condition | ```terminate_if(condition bool, reason [optional]string)``` |
 
 ## Config Example
 
