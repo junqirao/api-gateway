@@ -27,17 +27,32 @@ var (
 	logWrap = &logWrapper{}
 )
 
-func (w logWrapper) Info(ctx context.Context, format string, v ...interface{}) bool {
+func (w logWrapper) Info(ctx context.Context, v ...interface{}) bool {
+	g.Log().Info(ctx, v...)
+	return true
+}
+
+func (w logWrapper) Warn(ctx context.Context, v ...interface{}) bool {
+	g.Log().Warning(ctx, v...)
+	return true
+}
+
+func (w logWrapper) Error(ctx context.Context, v ...interface{}) bool {
+	g.Log().Error(ctx, v...)
+	return true
+}
+
+func (w logWrapper) Infof(ctx context.Context, format string, v ...interface{}) bool {
 	g.Log().Infof(ctx, format, v...)
 	return true
 }
 
-func (w logWrapper) Warn(ctx context.Context, format string, v ...interface{}) bool {
+func (w logWrapper) Warnf(ctx context.Context, format string, v ...interface{}) bool {
 	g.Log().Warningf(ctx, format, v...)
 	return true
 }
 
-func (w logWrapper) Error(ctx context.Context, format string, v ...interface{}) bool {
+func (w logWrapper) Errorf(ctx context.Context, format string, v ...interface{}) bool {
 	g.Log().Errorf(ctx, format, v...)
 	return true
 }

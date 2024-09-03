@@ -72,7 +72,7 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 	response.WriteJSON(input.Request, code)
 }
 
-func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input *model.ReverseProxyInput) (canRetry bool, code *response.Code) {
+func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input *model.ReverseProxyInput, isRetry ...bool) (canRetry bool, code *response.Code) {
 	// load balance
 	ups, ok := upstreams.Select(input.Request, loadbalance.GetOrCreate(input.RoutingKey).Selector)
 	if !ok {
@@ -97,16 +97,19 @@ func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input 
 		return
 	}
 
-	// program
-	programs, err := program.GetOrCreate(input.RoutingKey)
-	if err != nil {
-		g.Log().Errorf(ctx, "get or create program failed: %v", err)
-	} else {
-		var last string
-		last, err = programs.Exec(ctx, program.BuildEnvFromRequest(input.Request, ups.Instance))
+	// only execute program once in a request
+	if !(len(isRetry) > 0 && isRetry[0]) {
+		// program
+		programs, err := program.GetOrCreate(input.RoutingKey)
 		if err != nil {
-			code = response.CodeBadRequest.WithMessage(last).WithDetail(err.Error())
-			return
+			g.Log().Errorf(ctx, "get or create program failed: %v", err)
+		} else {
+			var last string
+			last, err = programs.Exec(ctx, program.BuildEnvFromRequest(input.Request, ups.Instance))
+			if err != nil {
+				code = response.CodeBadRequest.WithMessage(last).WithDetail(err.Error())
+				return
+			}
 		}
 	}
 

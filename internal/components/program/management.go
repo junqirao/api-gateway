@@ -123,8 +123,8 @@ func (h *managementHandler) SetGlobalVariables(r *ghttp.Request) {
 // DeleteGlobalVariables delete global variable
 func (h *managementHandler) DeleteGlobalVariables(r *ghttp.Request) {
 	req := new(ManagementDeleteGlobalVariablesRequest)
-	if err := r.Parse(&req); err != nil {
-		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err.Error()))
+	if err := r.Parse(&req); err != nil || req.Key == "" {
+		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err))
 		return
 	}
 	if err := variables.DeleteGlobalVariable(r.Context(), req.Key); err != nil {

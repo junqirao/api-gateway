@@ -2,6 +2,7 @@ package program
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -17,15 +18,16 @@ import (
 
 const (
 	lineSeparator              = ";"
-	envKeyGlobalVariable       = "global"
-	envKeySetGlobalVariable    = "setGlobalVariable"
 	envKeyNewResultWrapper     = "newResultWrapper"
 	envKeyExprMultilineWrapper = "exprMultilineWrapper"
+	envKeyGlobalVariable       = "global"
+	envKeySetGlobalVariable    = "set_global"
 	envKeyLogger               = "logger"
 	envKeyRequest              = "request"
 	envKeyResponse             = "response"
 	envKeyUpstream             = "upstream"
 	envKeyCtx                  = "ctx"
+	envKeyTerminateIf          = "terminate_if"
 )
 
 type (
@@ -88,6 +90,13 @@ func (p *Program) Exec(ctx context.Context, env ...map[string]interface{}) error
 	e[envKeyCtx] = ctx
 	e[envKeyExprMultilineWrapper] = p.exprMultilineWrapper
 	e[envKeyNewResultWrapper] = newResultWrapper
+	e[envKeyTerminateIf] = func(flat bool, reason ...string) error {
+		reasonStr := "request terminated"
+		if len(reason) > 0 && reason[0] != "" {
+			reasonStr = reason[0]
+		}
+		return errors.New(reasonStr)
+	}
 	e[envKeySetGlobalVariable] = func(key string, value interface{}) error {
 		return variables.SetGlobalVariable(ctx, key, value)
 	}
@@ -99,12 +108,8 @@ func (p *Program) Exec(ctx context.Context, env ...map[string]interface{}) error
 	}
 
 	// check result
-	if wrappers, ok := res.([]*resultWrapper); ok {
-		for _, wrapper := range wrappers {
-			if b, reason := wrapper.Ok(); !b {
-				return fmt.Errorf("expr: %s", reason)
-			}
-		}
+	if s, ok := res.(string); ok && s != "" {
+		return errors.New(s)
 	}
 	return nil
 }
@@ -148,13 +153,13 @@ func (p *Program) build(statements string) (err error) {
 	return
 }
 
-func (p *Program) exprMultilineWrapper(lines ...any) bool {
+func (p *Program) exprMultilineWrapper(lines ...*resultWrapper) (errMsg string) {
 	for _, line := range lines {
-		if line != nil {
-			return true
+		if b, reason := line.Ok(); !b {
+			return reason
 		}
 	}
-	return false
+	return
 }
 
 func (p *Programs) Create(info *model.ProgramInfo) error {
@@ -162,7 +167,10 @@ func (p *Programs) Create(info *model.ProgramInfo) error {
 	defer p.mu.Unlock()
 
 	name := info.Name
-	statements := gbase64.MustDecodeToString(info.Expr)
+	statements, err := gbase64.DecodeToString(info.Expr)
+	if err != nil {
+		return err
+	}
 
 	program, err := NewProgram(name, statements)
 	if err != nil {

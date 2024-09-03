@@ -47,7 +47,7 @@ func NewUpstream(ctx context.Context, instance *registry.Instance, cfg model.Ser
 
 // Allow is a combined entrance of rate limiter and circuit breaker,
 // returns limiter allow flag and circuit breaker callback
-func (u *Upstream) Allow(ctx context.Context) (cb func(success bool), code *response.Code) {
+func (u *Upstream) Allow(_ context.Context) (cb func(success bool), code *response.Code) {
 	if ok := u.limiter.Allow(); !ok {
 		// 429
 		code = response.CodeTooManyRequests
@@ -63,11 +63,6 @@ func (u *Upstream) Allow(ctx context.Context) (cb func(success bool), code *resp
 	case errors.Is(err, gobreaker.ErrOpenState):
 		// 503
 		code = response.CodeUnavailable
-	case err == nil:
-	default:
-		// 500
-		g.Log().Errorf(ctx, "upstream %s breaker error: %v", u.Identity(), err)
-		code = response.CodeInternalError.WithDetail(err.Error())
 	}
 	return
 }

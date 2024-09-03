@@ -39,6 +39,7 @@ func TestProgram(t *testing.T) {
 		setGlobalVariable("test_value", 123);
 		print(global.test_value);
 		test_struct.Print();
+		print(val!=2);
 		`)
 	if err != nil {
 		t.Fatal(err)
@@ -56,6 +57,7 @@ func TestProgram(t *testing.T) {
 			return true
 		},
 		"test_struct": &test{},
+		"val":         1,
 	})
 	if err != nil {
 		t.Fatal(err)
