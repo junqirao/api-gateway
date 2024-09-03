@@ -1,6 +1,6 @@
 # API Gateway
 
-[中文文档](/doc/readme_cn.md) | [English Doc](/README.MD)
+[中文文档](/doc/readme_cn.md) | [English Doc](../README.MD)
 
 支持配置热更新的可编程API网关
 
@@ -14,7 +14,7 @@
     * [待完成](#待完成)
   * [快速开始](#快速开始)
     * [API文档](#api文档)
-    * [Program](#program)
+    * [可编程脚本](#可编程脚本)
       * [示例](#示例)
       * [支持的方法和值](#支持的方法和值)
         * [request](#request)
@@ -24,11 +24,9 @@
         * [logger](#logger)
         * [upstream](#upstream)
         * [terminate_if](#terminate_if)
-  * [Config Example](#config-example)
+  * [配置示例](#配置示例)
   * [依赖项目](#依赖项目)
-<!-- TOC -->
-
-## 总览
+<!-- TOC -->## 总览
 
 ![overview](/doc/overview.png)
 
@@ -60,7 +58,7 @@
 
 [api reference](/doc/api_reference_cn.md)
 
-### Program
+### 可编程脚本
 
 利用 [go-expr](https://github.com/expr-lang/expr) 作为基础执行引擎
 额外支持了通过";"作为结尾的多行脚本。
@@ -149,7 +147,7 @@ logger object
 |--------------|----------|-------------|-------------------------------------------------------|
 | terminate_if | Function | 条件终止        | terminate_if(condition bool, reason [optional]string) |
 
-## Config Example
+## 配置示例
 
 ```yaml
 # goframe 服务器相关设置
