@@ -6,27 +6,25 @@
 
 -------
 
-<!-- TOC -->
 * [API Gateway](#api-gateway)
-  * [总览](#总览)
-  * [功能模块](#功能模块)
-    * [支持配置热更](#支持配置热更)
-    * [待完成](#待完成)
-  * [快速开始](#快速开始)
-    * [API文档](#api文档)
-    * [可编程脚本](#可编程脚本)
-      * [示例](#示例)
-      * [支持的方法和值](#支持的方法和值)
-        * [request](#request)
-        * [response](#response)
-        * [global](#global)
-        * [ctx](#ctx)
-        * [logger](#logger)
-        * [upstream](#upstream)
-        * [terminate_if](#terminate_if)
-  * [配置示例](#配置示例)
-  * [依赖项目](#依赖项目)
-<!-- TOC -->
+    * [总览](#总览)
+    * [功能模块](#功能模块)
+        * [支持配置热更](#支持配置热更)
+        * [待完成](#待完成)
+    * [快速开始](#快速开始)
+        * [API文档](#api文档)
+        * [可编程脚本](#可编程脚本)
+            * [示例](#示例)
+            * [支持的方法和值](#支持的方法和值)
+                * [request](#request)
+                * [response](#response)
+                * [global](#global)
+                * [ctx](#ctx)
+                * [logger](#logger)
+                * [upstream](#upstream)
+                * [terminate_if](#terminate_if)
+    * [配置示例](#配置示例)
+    * [依赖项目](#依赖项目)
 
 ## 总览
 

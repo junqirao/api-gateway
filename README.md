@@ -6,27 +6,25 @@ configuration hot updates supported programmable api gateway
 
 -------
 
-<!-- TOC -->
 * [API Gateway](#api-gateway)
-  * [Overview](#overview)
-  * [Features](#features)
-    * [Hot Updates Supported](#hot-updates-supported)
-    * [Todo List](#todo-list)
-  * [Quick Start](#quick-start)
-    * [API Reference](#api-reference)
-    * [Program](#program)
-      * [Example](#example)
-      * [Supported Functions](#supported-functions)
-        * [request](#request)
-        * [response](#response)
-        * [global](#global)
-        * [ctx](#ctx)
-        * [logger](#logger)
-        * [upstream](#upstream)
-        * [terminate_if](#terminate_if)
-  * [Config Example](#config-example)
-  * [Dependencies](#dependencies)
-<!-- TOC -->
+    * [Overview](#overview)
+    * [Features](#features)
+        * [Hot Updates Supported](#hot-updates-supported)
+        * [Todo List](#todo-list)
+    * [Quick Start](#quick-start)
+        * [API Reference](#api-reference)
+        * [Program](#program)
+            * [Example](#example)
+            * [Supported Functions](#supported-functions)
+                * [request](#request)
+                * [response](#response)
+                * [global](#global)
+                * [ctx](#ctx)
+                * [logger](#logger)
+                * [upstream](#upstream)
+                * [terminate_if](#terminate_if)
+    * [Config Example](#config-example)
+    * [Dependencies](#dependencies)
 
 ## Overview
 
