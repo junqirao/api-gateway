@@ -1,6 +1,6 @@
 # API Gateway
 
-[中文文档](/doc/readme_cn.md) | [English Doc](../README.MD)
+[中文文档](/doc/readme_cn.md) | [English Doc](../README.md)
 
 支持配置热更新的可编程API网关
 
@@ -26,7 +26,9 @@
         * [terminate_if](#terminate_if)
   * [配置示例](#配置示例)
   * [依赖项目](#依赖项目)
-<!-- TOC -->## 总览
+<!-- TOC -->
+
+## 总览
 
 ![overview](/doc/overview.png)
 
