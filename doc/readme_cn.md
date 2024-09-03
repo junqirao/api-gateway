@@ -1,6 +1,6 @@
 # API Gateway
 
-[中文文档](/doc/readme_cn.md) | [English Doc](README.MD)
+[中文文档](/doc/readme_cn.md) | [English Doc](/README.MD)
 
 支持配置热更新的可编程API网关
 
