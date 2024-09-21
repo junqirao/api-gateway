@@ -90,7 +90,10 @@ func (p *Program) Exec(ctx context.Context, env ...map[string]interface{}) error
 	e[envKeyCtx] = ctx
 	e[envKeyExprMultilineWrapper] = p.exprMultilineWrapper
 	e[envKeyNewResultWrapper] = newResultWrapper
-	e[envKeyTerminateIf] = func(flat bool, reason ...string) error {
+	e[envKeyTerminateIf] = func(flag bool, reason ...string) error {
+		if !flag {
+			return nil
+		}
 		reasonStr := "request terminated"
 		if len(reason) > 0 && reason[0] != "" {
 			reasonStr = reason[0]
