@@ -21,8 +21,8 @@ generator: "@tarslib/widdershins v4.0.23"
 
 # API-Gateway
 
-
 ## Authentication
+
 见config.yaml
 
     gateway.management.password
@@ -111,7 +111,6 @@ PUT {entrance}/management/config/load_balance
 ```weighted-random```
 ```less-load```
 ```hash```
-
 
 ### 请求参数
 
@@ -297,7 +296,6 @@ PUT {entrance}/management/program/variable
 
 DELETE {entrance}/management/program/variable
 
-
 ### 请求参数
 
 | 名称            | 位置     | 类型     | 必选 | 说明   |
@@ -423,6 +421,93 @@ PUT {entrance}/management/program/info
 {
   "message": "success",
   "code": 0
+}
+```
+
+### 返回结果
+
+| 状态码 | 状态码含义                                                   | 说明   | 数据模型   |
+|-----|---------------------------------------------------------|------|--------|
+| 200 | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline |
+
+## GET 获取上游服务名称
+
+GET {entrance}/management/upstream/service/names
+
+### 请求参数
+
+| 名称            | 位置     | 类型     | 必选 | 说明   |
+|---------------|--------|--------|----|------|
+| Authorization | header | string | 否  | none |
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "message": "success",
+  "code": 0,
+  "data": [
+    "test"
+  ]
+}
+```
+
+### 返回结果
+
+| 状态码 | 状态码含义                                                   | 说明   | 数据模型   |
+|-----|---------------------------------------------------------|------|--------|
+| 200 | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none | Inline |
+
+## GET 获取上游服务状态
+
+GET {entrance}/management/upstream/service/state
+
+### 请求参数
+
+| 名称            | 位置     | 类型     | 必选 | 说明   |
+|---------------|--------|--------|----|------|
+| service_name  | query  | string | 是  | none |
+| Authorization | header | string | 否  | none |
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "message": "success",
+  "code": 0,
+  "data": {
+    "upstreams": 3,
+    "upstream_states": [
+      {
+        "hostname": "xxx1",
+        "instance_id": "c47d2e33-553f-430d-9f50-f27e9284bf47",
+        "healthy": true,
+        "weight": 10,
+        "load": 2,
+        "breaker_state": "closed"
+      },
+      {
+        "hostname": "xxx2",
+        "instance_id": "cf74bc68-fe5a-4b6f-a26b-3879b484fa74",
+        "healthy": true,
+        "weight": 10,
+        "load": 3,
+        "breaker_state": "closed"
+      },
+      {
+        "hostname": "xxx3",
+        "instance_id": "e0e3f910-4a75-4996-b519-2c5460981be6",
+        "healthy": true,
+        "weight": 30,
+        "load": 8,
+        "breaker_state": "closed"
+      }
+    ]
+  }
 }
 ```
 

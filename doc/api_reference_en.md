@@ -430,3 +430,89 @@ PUT {entrance}/management/program/info
 |-------------|---------------------------------------------------------|-------------|------------|
 | 200         | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none        | Inline     |
 
+## GET Upstream Service Names
+
+GET {entrance}/management/upstream/service/names
+
+### Request parameters
+
+| Name          | Position | Type   | Required | Description |
+|---------------|----------|--------|----------|-------------|
+| Authorization | header   | string | No       | none        |
+
+> Response Example
+
+> 200 Response
+
+```json
+{
+  "message": "success",
+  "code": 0,
+  "data": [
+    "test"
+  ]
+}
+```
+
+### Response Result
+
+| Status Code | Meaning of Status Code                                  | Description | Data Model |
+|-------------|---------------------------------------------------------|-------------|------------|
+| 200         | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none        | Inline     |
+
+## GET Upstream Service State
+
+GET {entrance}/management/upstream/service/state
+
+### Request parameters
+
+| Name          | Position | Type   | Required | Description |
+|---------------|----------|--------|----------|-------------|
+| service_name  | query    | string | Yes      | none        |
+| Authorization | header   | string | No       | none        |
+
+> Response Example
+
+> 200 Response
+
+```json
+{
+  "message": "success",
+  "code": 0,
+  "data": {
+    "upstreams": 3,
+    "upstream_states": [
+      {
+        "hostname": "xxx1",
+        "instance_id": "c47d2e33-553f-430d-9f50-f27e9284bf47",
+        "healthy": true,
+        "weight": 10,
+        "load": 2,
+        "breaker_state": "closed"
+      },
+      {
+        "hostname": "xxx2",
+        "instance_id": "cf74bc68-fe5a-4b6f-a26b-3879b484fa74",
+        "healthy": true,
+        "weight": 10,
+        "load": 3,
+        "breaker_state": "closed"
+      },
+      {
+        "hostname": "xxx3",
+        "instance_id": "e0e3f910-4a75-4996-b519-2c5460981be6",
+        "healthy": true,
+        "weight": 30,
+        "load": 8,
+        "breaker_state": "closed"
+      }
+    ]
+  }
+}
+```
+
+### Response Result
+
+| Status Code | Meaning of Status Code                                  | Description | Data Model |
+|-------------|---------------------------------------------------------|-------------|------------|
+| 200         | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none        | Inline     |
