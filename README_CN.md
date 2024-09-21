@@ -37,8 +37,12 @@
 ## 功能模块
 
 * 负载均衡
-    * 加权轮询 (Weighted Round Robin)
+    * 轮询 (Round-Robin)
+    * 随机 (Random)
+    * 加权轮询 (Weighted Round-Robin)
     * 加权随机 (Weighted Random)
+    * 最少负载 (Less Load)
+    * 客户端地址哈希 (Hash)
 * 限流器
 * 断路器
 * 可插拔脚本

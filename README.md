@@ -37,8 +37,12 @@ configuration hot updates supported programmable api gateway
 ## Features
 
 * Load Balance
+    * Round-Robin
+    * Random
     * Weighted Round-Robin
     * Weighted Random
+    * Less Load
+    * Hash
 * Rate Limiter
 * Circuit Breaker
 * Programmable
