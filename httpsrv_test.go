@@ -15,19 +15,18 @@ import (
 )
 
 func TestHttpSrv0(t *testing.T) {
-	startEchoServer("test0", 8997)
+	startEchoServer("test0", 8997, 10)
 }
 
 func TestHttpSrv1(t *testing.T) {
-	startEchoServer("test1", 8998)
+	startEchoServer("test1", 8998, 10)
 }
 
 func TestHttpSrv2(t *testing.T) {
-	startEchoServer("test2", 8999)
+	startEchoServer("test2", 8999, 30)
 }
 
-func startEchoServer(name string, port int) {
-
+func startEchoServer(name string, port, weight int) {
 	id := fmt.Sprintf("server#%v", name)
 	server := g.Server(id)
 	server.SetPort(port)
@@ -57,7 +56,12 @@ func startEchoServer(name string, port int) {
 		panic(err)
 		return
 	}
-	err = registry.Init(context.Background(), cfg, registry.NewInstance("test").WithAddress("127.0.0.1", port))
+	err = registry.Init(context.Background(), cfg, registry.NewInstance("test").WithMetaData(
+		map[string]interface{}{
+			"name":   name,
+			"weight": weight,
+		},
+	).WithAddress("127.0.0.1", port))
 	if err != nil {
 		panic(err)
 		return

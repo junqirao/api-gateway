@@ -46,7 +46,7 @@ func (h *cacheHandler) registerEvent() {
 
 		switch e {
 		case registry.EventTypeUpdate, registry.EventTypeCreate:
-			g.Log().Infof(ctx, "service[%s] %s upstreams , instance=%v", instance.ServiceName, e, instance.String())
+			g.Log().Infof(ctx, "service[%s] %s upstream, instance=%v", instance.ServiceName, e, instance.String())
 			cfg, _ := config.GetServiceConfig(instance.ServiceName)
 			h.getOrCreateService(ctx, instance.ServiceName).Set(NewUpstream(ctx, instance, *cfg))
 		case registry.EventTypeDelete:

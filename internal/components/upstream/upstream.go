@@ -7,6 +7,7 @@ import (
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/util/gconv"
 	registry "github.com/junqirao/simple-registry"
 	"github.com/sony/gobreaker"
 
@@ -36,15 +37,26 @@ type (
 )
 
 func NewUpstream(ctx context.Context, instance *registry.Instance, cfg model.ServiceConfig) *Upstream {
+	var weight int64 = 0
+	if w, ok := instance.Meta["weight"]; ok {
+		weight = gconv.Int64(w)
+	} else {
+		weight = defaultWeight
+	}
+
+	breakerSetting := cfg.Breaker.Setting(ctx)
+	breakerSetting.Name = instance.Identity("_")
+
 	u := &Upstream{
 		Instance:   *instance,
-		breaker:    breaker.New(cfg.Breaker.Setting(ctx)),
+		breaker:    breaker.New(breakerSetting),
 		limiter:    limiter.NewLimiter(cfg.RateLimiter),
 		highLoad:   &atomic.Bool{},
 		Measurable: balancer.NewMeasurable(),
-		Weighable:  balancer.NewWeighable(basicLoadBalanceWeight),
+		Weighable:  balancer.NewWeighable(weight),
 	}
 	u.proxyHandler = NewHandler(ctx, u, cfg.ReverseProxy)
+	g.Log().Infof(ctx, "upstream %s created. weight=%d, breaker=%+v, limiter=%+v", u.Identity(), u.Weight(), cfg.Breaker, cfg.RateLimiter)
 	return u
 }
 

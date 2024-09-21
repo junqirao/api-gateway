@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	basicLoadBalanceWeight = 1
+	defaultWeight = 1
 )
 
 type (
