@@ -57,7 +57,7 @@ type (
 		OpenTimeout string `json:"open_timeout"`
 		// Interval the cyclic period of the closed state
 		// for the CircuitBreaker to clear the internal Counts, default 1m
-		Interval string `json:"Interval"`
+		Interval string `json:"interval"`
 	}
 	// ServiceConfig service config
 	ServiceConfig struct {
