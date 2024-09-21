@@ -140,7 +140,7 @@ Parameters:
 | max_failures           | when reached max_failures breaker<br/> changes status from close to half_open                                 | 5       |
 | half_open_max_requests | when reached half_open_max_requests <br/>at half_open state breaker changes state<br/> from half_open to open | 1       |
 | open_timeout           | the period of the open state, default 1m                                                                      | 1m      |
-| interval               | for the CircuitBreaker to clear the internal <br/>Counts, default 1m                                          | 1s      |
+| interval               | for the CircuitBreaker to clear the internal <br/>Counts, default 1m                                          | 1m      |
 
 ### Program
 

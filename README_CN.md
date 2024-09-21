@@ -135,12 +135,12 @@ PUT {entrance}/management/config/breaker
 }
 ```
 
-| 参数                     | 描述                                          | 默认值 |
-|------------------------|---------------------------------------------|-----|
-| max_failures           | 当错误达到阈值时，断路器状态从闭合变为半开                       | 5   |
-| half_open_max_requests | 当断路器状态为半开时达到阈值后，断路器状态从半开变为完全断开              | 1   |
-| open_timeout           | 断路器断开状态持续时间，默认1分钟                           | 1m  |
-| interval               | 清除max_failures和half_open_max_requests计数器的间隔 | 1s  |
+| 参数                     | 描述                                                | 默认值 |
+|------------------------|---------------------------------------------------|-----|
+| max_failures           | 当错误达到阈值时，断路器状态从闭合变为半开                             | 5   |
+| half_open_max_requests | 当断路器状态为半开时达到阈值后，断路器状态从半开变为完全断开                    | 1   |
+| open_timeout           | 断路器断开状态持续时间，默认1分钟                                 | 1m  |
+| interval               | 清除max_failures和half_open_max_requests计数器的间隔，默认1分钟 | 1m  |
 
 ### 可编程脚本
 
