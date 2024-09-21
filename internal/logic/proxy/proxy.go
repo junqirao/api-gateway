@@ -8,8 +8,8 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 
+	"api-gateway/internal/components/balancer"
 	"api-gateway/internal/components/config"
-	"api-gateway/internal/components/loadbalance"
 	"api-gateway/internal/components/program"
 	"api-gateway/internal/components/response"
 	"api-gateway/internal/components/upstream"
@@ -74,10 +74,10 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 
 func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input *model.ReverseProxyInput, isRetry ...bool) (canRetry bool, code *response.Code) {
 	// load balance
-	ups, ok := upstreams.Select(input.Request, loadbalance.GetOrCreate(input.RoutingKey).Selector)
-	if !ok {
+	ups, err := upstreams.SelectOne(input.Request, balancer.GetOrCreate(input.RoutingKey))
+	if err != nil {
 		// 503
-		code = response.CodeUnavailable.WithDetail(input.RoutingKey)
+		code = response.CodeUnavailable.WithDetail(err.Error())
 		return
 	}
 

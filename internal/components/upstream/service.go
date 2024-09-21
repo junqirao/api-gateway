@@ -7,8 +7,8 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 
+	"api-gateway/internal/components/balancer"
 	"api-gateway/internal/components/config"
-	"api-gateway/internal/components/loadbalance"
 	"api-gateway/internal/consts"
 	"api-gateway/internal/model"
 )
@@ -26,8 +26,6 @@ type (
 		Config     model.ServiceConfig
 		RoutingKey string
 	}
-	// Selector selects an Upstream from Service
-	Selector func(r *ghttp.Request, ups []loadbalance.Weighted) (ref int, ok bool)
 )
 
 func NewService(routingKey string, cfg model.ServiceConfig) *Service {
@@ -54,12 +52,10 @@ func (s *Service) Set(u *Upstream) {
 	for i, upstream := range s.ups {
 		if upstream.Identity() == u.Identity() {
 			s.ups[i] = u
-			u.SetRef(i)
 			return
 		}
 	}
 	s.ups = append(s.ups, u)
-	u.SetRef(len(s.ups) - 1)
 }
 
 func (s *Service) Delete(id string) {
@@ -69,49 +65,31 @@ func (s *Service) Delete(id string) {
 	for i, upstream := range s.ups {
 		if upstream.Identity() == id {
 			s.ups = append(s.ups[:i], s.ups[i+1:]...)
-			// reset ref from i+1 -> len(s.ups
-			for j := i; j < len(s.ups); j++ {
-				s.ups[j].SetRef(j)
-			}
 			return
 		}
 	}
 }
 
-func (s *Service) Select(r *ghttp.Request, selector Selector) (u *Upstream, ok bool) {
+// SelectOne selects an Upstream from Service
+func (s *Service) SelectOne(r *ghttp.Request, balancer balancer.Balancer) (u *Upstream, err error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	available := s.availableWeighted()
-	if s == nil || len(available) == 0 {
-		return
-	}
-
-	if len(available) == 1 {
-		ok = true
-		u = s.ups[available[0].Ref()]
-		return
-	}
-
-	idx, ok := selector(r, available)
-	if ok {
-		u = s.ups[idx]
-	}
-	return
-}
-
-func (s *Service) availableWeighted() []loadbalance.Weighted {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	var ups []loadbalance.Weighted
-	for _, u := range s.ups {
-		if u.healthy() {
-			ups = append(ups, u)
+	var available []any
+	for _, uu := range s.ups {
+		if uu.healthy() {
+			available = append(available, uu)
 		}
 	}
-	s.available = len(ups)
-	return ups
+
+	// using client ip as hash key, only for balancer.StrategyHash
+	v, err := balancer.Pick(available, r.GetClientIp())
+	if err != nil {
+		g.Log().Warningf(r.Context(), "select upstream failed: %v", err)
+		return
+	}
+	u = v.(*Upstream)
+	return
 }
 
 func (s *Service) CountUpstream() int {
@@ -138,7 +116,7 @@ func (s *Service) configEventHandler(t config.EventType, module, key string, val
 	g.Log().Infof(context.Background(), "config event: type=%s, key=%s, value=%v", t, key, value)
 	if module == consts.ModuleNameLoadBalance {
 		// update lb instance
-		loadbalance.Update(s.RoutingKey)
+		balancer.Update(s.RoutingKey)
 		return
 	}
 	// maybe has some way better than update all at once

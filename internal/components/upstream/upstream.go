@@ -10,10 +10,10 @@ import (
 	registry "github.com/junqirao/simple-registry"
 	"github.com/sony/gobreaker"
 
+	"api-gateway/internal/components/balancer"
 	"api-gateway/internal/components/breaker"
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/limiter"
-	"api-gateway/internal/components/loadbalance"
 	"api-gateway/internal/components/response"
 	"api-gateway/internal/consts"
 	"api-gateway/internal/model"
@@ -23,7 +23,9 @@ type (
 	// Upstream is a reverse proxy target
 	Upstream struct {
 		registry.Instance
-		loadbalance.Weighted
+
+		balancer.Measurable
+		balancer.Weighable
 
 		Parent       *Service
 		proxyHandler model.ReverseProxyHandler
@@ -35,11 +37,12 @@ type (
 
 func NewUpstream(ctx context.Context, instance *registry.Instance, cfg model.ServiceConfig) *Upstream {
 	u := &Upstream{
-		Instance: *instance,
-		breaker:  breaker.New(cfg.Breaker.Setting(ctx)),
-		limiter:  limiter.NewLimiter(cfg.RateLimiter),
-		Weighted: loadbalance.NewWeighted(basicLoadBalanceWeight),
-		highLoad: &atomic.Bool{},
+		Instance:   *instance,
+		breaker:    breaker.New(cfg.Breaker.Setting(ctx)),
+		limiter:    limiter.NewLimiter(cfg.RateLimiter),
+		highLoad:   &atomic.Bool{},
+		Measurable: balancer.NewMeasurable(),
+		Weighable:  balancer.NewWeighable(basicLoadBalanceWeight),
 	}
 	u.proxyHandler = NewHandler(ctx, u, cfg.ReverseProxy)
 	return u

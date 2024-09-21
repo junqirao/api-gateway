@@ -1,4 +1,4 @@
-package loadbalance
+package balancer
 
 import (
 	"context"
@@ -25,7 +25,7 @@ func GetOrCreate(routingKey string) Balancer {
 // Update load balancer instance with latest config
 func Update(routingKey string) Balancer {
 	cfg, _ := config.GetServiceConfig(routingKey)
-	b := New(cfg.LoadBalance.Strategy)
+	b := New(Strategy(cfg.LoadBalance.Strategy))
 	m.Store(routingKey, b)
 	g.Log().Infof(context.Background(), "service %s load-balancer updated: %s", routingKey, cfg.LoadBalance.Strategy)
 	return b
