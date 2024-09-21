@@ -13,6 +13,10 @@ configuration hot updates supported programmable api gateway
         * [Todo List](#todo-list)
     * [Quick Start](#quick-start)
         * [API Reference](#api-reference)
+        * [Config](#config)
+            * [LoadBalance](#loadbalance)
+            * [Rate Limiter](#rate-limiter)
+            * [Circuit Breaker](#circuit-breaker)
         * [Program](#program)
             * [Example](#example)
             * [Supported Functions](#supported-functions)
@@ -57,6 +61,86 @@ configuration hot updates supported programmable api gateway
 ### API Reference
 
 [api reference](/doc/api_reference_en.md)
+
+### Config
+
+to update config, see [api reference](/doc/api_reference_en.md)
+
+available apis:
+
+```
+PUT {entrance}/management/config/load_balance
+PUT {entrance}/management/config/rate_limiter
+PUT {entrance}/management/config/breaker
+```
+
+#### LoadBalance
+
+Parameters:
+
+```json
+{
+  "service_name": "...",
+  "config": {
+    "strategy": "weighted-round-robin"
+  }
+}
+```
+
+| Parameter | Description            | Default     |
+|-----------|------------------------|-------------|
+| strategy  | load balancer strategy | round-robin |
+
+Supported Strategies:
+
+```round-robin```
+```random```
+```weighted-round-robin```
+```weighted-random```
+```less-load```
+```hash```
+
+#### Rate Limiter
+
+Parameters:
+
+```json
+{
+  "service_name": "...",
+  "config": {
+    "rate": 5,
+    "peak": 10
+  }
+}
+```
+
+| Parameter | Description     | Default |
+|-----------|-----------------|---------|
+| rate      | rate pre second | -       |
+| peak      | burst           | -       |
+
+#### Circuit Breaker
+
+Parameters:
+
+```json
+{
+  "service_name": "...",
+  "config": {
+    "max_failures": 5,
+    "half_open_max_requests": 1,
+    "open_timeout": "30s",
+    "interval": "30s"
+  }
+}
+```
+
+| Parameter              | Description                                                                                                   | Default |
+|------------------------|---------------------------------------------------------------------------------------------------------------|---------|
+| max_failures           | when reached max_failures breaker<br/> changes status from close to half_open                                 | 5       |
+| half_open_max_requests | when reached half_open_max_requests <br/>at half_open state breaker changes state<br/> from half_open to open | 1       |
+| open_timeout           | the period of the open state, default 1m                                                                      | 1m      |
+| interval               | for the CircuitBreaker to clear the internal <br/>Counts, default 1m                                          | 1s      |
 
 ### Program
 

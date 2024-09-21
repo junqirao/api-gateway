@@ -74,7 +74,7 @@ GET {entrance}/management/config
         "max_failures": 5,
         "half_open_max_requests": 1,
         "open_timeout": "30s",
-        "Interval": "30s"
+        "interval": "30s"
       }
     }
   }
@@ -99,10 +99,18 @@ PUT {entrance}/management/config/load_balance
 {
   "service_name": "service_name",
   "config": {
-    "strategy": "round_robin/random"
+    "strategy": "round-robin"
   }
 }
 ```
+
+supported strategy:
+```round-robin```
+```random```
+```weighted-round-robin```
+```weighted-random```
+```less-load```
+```hash```
 
 ### Request parameters
 
@@ -185,7 +193,7 @@ PUT {entrance}/management/config/breaker
     "max_failures": 5,
     "half_open_max_requests": 1,
     "open_timeout": "30s",
-    "Interval": "30s"
+    "interval": "30s"
   }
 }
 ```

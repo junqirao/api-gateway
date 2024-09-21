@@ -13,6 +13,10 @@
         * [待完成](#待完成)
     * [快速开始](#快速开始)
         * [API文档](#api文档)
+        * [服务配置](#服务配置)
+            * [负载均衡](#负载均衡)
+            * [限流器](#限流器)
+            * [断路器](#断路器)
         * [可编程脚本](#可编程脚本)
             * [示例](#示例)
             * [支持的方法和值](#支持的方法和值)
@@ -57,6 +61,86 @@
 ### API文档
 
 [api reference](/doc/api_reference_cn.md)
+
+### 服务配置
+
+更新服务配置 详见 [api reference](/doc/api_reference_cn.md)
+
+可用的API:
+
+```
+PUT {entrance}/management/config/load_balance
+PUT {entrance}/management/config/rate_limiter
+PUT {entrance}/management/config/breaker
+```
+
+#### 负载均衡
+
+请求参数:
+
+```json
+{
+  "service_name": "...",
+  "config": {
+    "strategy": "weighted-round-robin"
+  }
+}
+```
+
+| 参数       | 描述     | 默认值         |
+|----------|--------|-------------|
+| strategy | 负载均衡策略 | round-robin |
+
+可用的负载均衡策略:
+
+```round-robin```
+```random```
+```weighted-round-robin```
+```weighted-random```
+```less-load```
+```hash```
+
+#### 限流器
+
+请求参数:
+
+```json
+{
+  "service_name": "...",
+  "config": {
+    "rate": 5,
+    "peak": 10
+  }
+}
+```
+
+| 参数   | 描述   | 默认值 |
+|------|------|-----|
+| rate | 每秒限制 | -   |
+| peak | 突发值  | -   |
+
+#### 断路器
+
+请求参数:
+
+```json
+{
+  "service_name": "...",
+  "config": {
+    "max_failures": 5,
+    "half_open_max_requests": 1,
+    "open_timeout": "30s",
+    "interval": "30s"
+  }
+}
+```
+
+| 参数                     | 描述                                          | 默认值 |
+|------------------------|---------------------------------------------|-----|
+| max_failures           | 当错误达到阈值时，断路器状态从闭合变为半开                       | 5   |
+| half_open_max_requests | 当断路器状态为半开时达到阈值后，断路器状态从半开变为完全断开              | 1   |
+| open_timeout           | 断路器断开状态持续时间，默认1分钟                           | 1m  |
+| interval               | 清除max_failures和half_open_max_requests计数器的间隔 | 1s  |
 
 ### 可编程脚本
 
@@ -147,7 +231,7 @@ logger object
 |--------------|----------|-------------|-------------------------------------------------------------|
 | terminate_if | Function | 条件终止        | ```terminate_if(condition bool, reason [optional]string)``` |
 
-## 配置示例
+## 配置文件示例
 
 ```yaml
 # goframe 服务器相关设置
