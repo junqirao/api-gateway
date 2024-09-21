@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -33,6 +34,10 @@ func startEchoServer(name string, port, weight int) {
 	server.Group("/", func(group *ghttp.RouterGroup) {
 		group.ALL("/echo", func(r *ghttp.Request) {
 			st := r.GetQuery("status", 200).Int()
+			slp := r.GetQuery("sleep", 0).Int()
+			if slp > 0 {
+				time.Sleep(time.Millisecond * time.Duration(slp))
+			}
 			fmt.Printf("echo: %d\n", st)
 			response.WriteJSON(r, response.NewCode(st, id, st))
 		})

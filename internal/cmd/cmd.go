@@ -13,6 +13,7 @@ import (
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/program"
 	"api-gateway/internal/components/response"
+	"api-gateway/internal/components/upstream"
 	"api-gateway/internal/controller/reverse"
 )
 
@@ -55,6 +56,8 @@ var (
 					config.Router(group)
 					// program
 					program.Router(group)
+					// upstream
+					upstream.Router(group)
 				})
 			}
 

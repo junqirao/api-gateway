@@ -34,6 +34,16 @@ type (
 		breaker      *breaker.Breaker
 		highLoad     *atomic.Bool
 	}
+
+	// UpsState upstream state
+	UpsState struct {
+		HostName     string `json:"hostname"`
+		InstanceId   string `json:"instance_id"`
+		Healthy      bool   `json:"healthy"`
+		Weight       int64  `json:"weight"`
+		Load         int64  `json:"load"`
+		BreakerState string `json:"breaker_state"`
+	}
 )
 
 func NewUpstream(ctx context.Context, instance *registry.Instance, cfg model.ServiceConfig) *Upstream {
@@ -63,12 +73,15 @@ func NewUpstream(ctx context.Context, instance *registry.Instance, cfg model.Ser
 // Allow is a combined entrance of rate limiter and circuit breaker,
 // returns limiter allow flag and circuit breaker callback
 func (u *Upstream) Allow(_ context.Context) (cb func(success bool), code *response.Code) {
+	// rate limiter
 	if ok := u.limiter.Allow(); !ok {
 		// 429
 		code = response.CodeTooManyRequests
 		u.highLoad.Store(true)
 		return
 	}
+
+	// circuit breaker
 	u.highLoad.Store(false)
 	cb, err := u.breaker.Allow()
 	switch {
@@ -118,5 +131,17 @@ func (u *Upstream) updateConfig(module string) {
 		u.breaker = breaker.New(cfg.Breaker.Setting(ctx))
 		g.Log().Infof(ctx, "upstream %s breaker -> %+v", u.Identity(), cfg.Breaker)
 		u.Parent.Config.Breaker = cfg.Breaker
+	}
+}
+
+// State of upstream
+func (u *Upstream) State() *UpsState {
+	return &UpsState{
+		HostName:     u.HostName,
+		InstanceId:   u.Instance.Id,
+		Healthy:      u.healthy(),
+		Weight:       u.Weight(),
+		Load:         u.Load(),
+		BreakerState: u.breaker.State().String(),
 	}
 }
