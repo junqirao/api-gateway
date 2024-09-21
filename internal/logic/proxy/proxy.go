@@ -86,6 +86,9 @@ func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input 
 		s.writeDebugHeader(input.Request, ups)
 	}
 
+	ups.AddLoad(1)
+	defer ups.AddLoad(-1)
+
 	// circuit breaker and rate limiter
 	cb, code := ups.Allow(ctx)
 	if code != nil {
