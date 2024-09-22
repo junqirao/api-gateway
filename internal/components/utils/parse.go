@@ -1,4 +1,4 @@
-package reverse
+package utils
 
 import (
 	"strings"
@@ -6,7 +6,7 @@ import (
 	"api-gateway/internal/components/config"
 )
 
-func parseRoutingKey(u string) string {
+func ParseRoutingKey(u string) string {
 	if config.Gateway.Prefix == "" || u == "" {
 		return u
 	}

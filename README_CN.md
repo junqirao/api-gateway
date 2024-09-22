@@ -10,7 +10,6 @@
     * [总览](#总览)
     * [功能模块](#功能模块)
         * [支持配置热更](#支持配置热更)
-        * [待完成](#待完成)
     * [快速开始](#快速开始)
         * [API文档](#api文档)
         * [服务配置](#服务配置)
@@ -27,7 +26,12 @@
                 * [logger](#logger)
                 * [upstream](#upstream)
                 * [terminate_if](#terminate_if)
-    * [配置示例](#配置示例)
+        * [Metric](#metric)
+            * [基础指标](#基础指标)
+            * [额外指标](#额外指标)
+                * [释义](#释义)
+                * [示例](#示例-1)
+    * [配置文件示例](#配置文件示例)
     * [依赖项目](#依赖项目)
 
 ## 总览
@@ -48,6 +52,7 @@
 * 可插拔脚本
 * 请求重试
 * 配置热更新
+* Prometheus指标接入
 
 ### 支持配置热更
 
@@ -55,10 +60,6 @@
 * 限流器
 * 断路器
 * 可插拔脚本程序
-
-### 待完成
-
-* Prometheus指标接入
 
 ## 快速开始
 
@@ -234,6 +235,47 @@ logger object
 | Name         | Type     | Description | Usage                                                       |
 |--------------|----------|-------------|-------------------------------------------------------------|
 | terminate_if | Function | 条件终止        | ```terminate_if(condition bool, reason [optional]string)``` |
+
+### Metric
+
+```
+GET {entrance}/management/metrics
+```
+
+_注意：如果配置中 gateway.management.password 不为空，请求头需要添加 "Authorization" 字段。_
+
+#### 基础指标
+
+见 [prometheus/client_golang](https://github.com/prometheus/client_golang)
+
+#### 额外指标
+
+##### 释义
+
+| 字段                             | 含义     | 标签含义                          |
+|--------------------------------|--------|-------------------------------|
+| gateway_http_request_total     | 请求总量   | -                             |
+| gateway_http_service_time_cost | 请求时间成本 | service:"服务名" quantile:"百分位数" |
+| gateway_http_status_total      | 状态总量   | status:"HTTP响应状态码"            |
+
+##### 示例
+
+```
+# HELP gateway_http_request_total Request count.
+# TYPE gateway_http_request_total counter
+gateway_http_request_total 5236
+# HELP gateway_http_service_time_cost Request time cost by service.
+# TYPE gateway_http_service_time_cost summary
+gateway_http_service_time_cost{service="test",quantile="0.5"} 59
+gateway_http_service_time_cost{service="test",quantile="0.9"} 93
+gateway_http_service_time_cost{service="test",quantile="0.99"} 107
+gateway_http_service_time_cost_sum{service="test"} 300712
+gateway_http_service_time_cost_count{service="test"} 5236
+# HELP gateway_http_status_total Request status count.
+# TYPE gateway_http_status_total counter
+gateway_http_status_total{status="200"} 5234
+gateway_http_status_total{status="502"} 2
+```
 
 ## 配置文件示例
 

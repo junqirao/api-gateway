@@ -3,6 +3,7 @@ package reverse
 import (
 	"github.com/gogf/gf/v2/net/ghttp"
 
+	"api-gateway/internal/components/utils"
 	"api-gateway/internal/model"
 	"api-gateway/internal/service"
 )
@@ -13,7 +14,7 @@ func (c Controller) Proxy(r *ghttp.Request) {
 	service.Proxy().Proxy(
 		r.GetCtx(),
 		&model.ReverseProxyInput{
-			RoutingKey: parseRoutingKey(r.Request.RequestURI),
+			RoutingKey: utils.ParseRoutingKey(r.Request.RequestURI),
 			Request:    r,
 		},
 	)

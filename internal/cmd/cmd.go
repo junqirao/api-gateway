@@ -9,9 +9,11 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcmd"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/program"
+	"api-gateway/internal/components/prometheus"
 	"api-gateway/internal/components/response"
 	"api-gateway/internal/components/upstream"
 	"api-gateway/internal/controller/reverse"
@@ -23,16 +25,23 @@ var (
 		Usage: "main",
 		Brief: "start http server",
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
+			// prepare
 			pattern := config.Gateway.Prefix
 			if !strings.HasSuffix(pattern, "/") {
 				pattern += "/"
 			}
+			pattern = fmt.Sprintf("%s*", pattern)
+
 			s := g.Server()
 			if g.Cfg().MustGet(ctx, "server.debug", false).Bool() {
 				g.Log().Info(ctx, "pprof enabled")
 				s.EnablePProf()
 			}
-			s.BindHandler(fmt.Sprintf("%s*", pattern), reverse.New().Proxy)
+
+			// middleware
+			s.BindMiddleware(pattern, prometheus.Middleware)
+			// reverse
+			s.BindHandler(pattern, reverse.New().Proxy)
 
 			// management
 			if g.Cfg().MustGet(ctx, "gateway.management.enable", true).Bool() {
@@ -58,6 +67,10 @@ var (
 					program.Router(group)
 					// upstream
 					upstream.Router(group)
+					// prometheus
+					group.ALL("/metrics", func(r *ghttp.Request) {
+						promhttp.Handler().ServeHTTP(r.Response.RawWriter(), r.Request)
+					})
 				})
 			}
 

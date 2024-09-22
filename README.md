@@ -10,7 +10,6 @@ configuration hot updates supported programmable api gateway
     * [Overview](#overview)
     * [Features](#features)
         * [Hot Updates Supported](#hot-updates-supported)
-        * [Todo List](#todo-list)
     * [Quick Start](#quick-start)
         * [API Reference](#api-reference)
         * [Config](#config)
@@ -27,6 +26,11 @@ configuration hot updates supported programmable api gateway
                 * [logger](#logger)
                 * [upstream](#upstream)
                 * [terminate_if](#terminate_if)
+        * [Metric](#metric)
+            * [Basic](#basic)
+            * [Extra](#extra)
+                * [Fields](#fields)
+                * [Example](#example-1)
     * [Config Example](#config-example)
     * [Dependencies](#dependencies)
 
@@ -48,6 +52,7 @@ configuration hot updates supported programmable api gateway
 * Programmable
 * Retry
 * Configuration Hot Updates
+* Metrics for prometheus
 
 ### Hot Updates Supported
 
@@ -55,10 +60,6 @@ configuration hot updates supported programmable api gateway
 * Rate Limiter
 * Circuit Breaker
 * Program
-
-### Todo List
-
-* Metrics for prometheus
 
 ## Quick Start
 
@@ -236,6 +237,47 @@ logger object
 | Name         | Type     | Description                      | Usage                                                       |
 |--------------|----------|----------------------------------|-------------------------------------------------------------|
 | terminate_if | Function | terminate request with condition | ```terminate_if(condition bool, reason [optional]string)``` |
+
+### Metric
+
+```
+GET {entrance}/management/metrics
+```
+
+_notice: if gateway.management.password not empty, request header "Authorization" is required._
+
+#### Basic
+
+for detail, see [prometheus/client_golang](https://github.com/prometheus/client_golang)
+
+#### Extra
+
+##### Fields
+
+| Field                          | Description       | Label Description                          |
+|--------------------------------|-------------------|--------------------------------------------|
+| gateway_http_request_total     | total requests    | -                                          |
+| gateway_http_service_time_cost | request time cost | service:"service name" quantile:"quantile" |
+| gateway_http_status_total      | request status    | status:"HTTP status code"                  |
+
+##### Example
+
+```
+# HELP gateway_http_request_total Request count.
+# TYPE gateway_http_request_total counter
+gateway_http_request_total 5236
+# HELP gateway_http_service_time_cost Request time cost by service.
+# TYPE gateway_http_service_time_cost summary
+gateway_http_service_time_cost{service="test",quantile="0.5"} 59
+gateway_http_service_time_cost{service="test",quantile="0.9"} 93
+gateway_http_service_time_cost{service="test",quantile="0.99"} 107
+gateway_http_service_time_cost_sum{service="test"} 300712
+gateway_http_service_time_cost_count{service="test"} 5236
+# HELP gateway_http_status_total Request status count.
+# TYPE gateway_http_status_total counter
+gateway_http_status_total{status="200"} 5234
+gateway_http_status_total{status="502"} 2
+```
 
 ## Config Example
 

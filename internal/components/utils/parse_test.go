@@ -1,4 +1,4 @@
-package reverse
+package utils
 
 import (
 	"testing"
@@ -15,7 +15,7 @@ func BenchmarkParse(b *testing.B) {
 	}
 	var s = ""
 	for i := 0; i < b.N; i++ {
-		s = parseRoutingKey("/api/routing_key/test1/test2/test3?a=1&b=2")
+		s = ParseRoutingKey("/api/routing_key/test1/test2/test3?a=1&b=2")
 	}
 	b.Log(s)
 }
