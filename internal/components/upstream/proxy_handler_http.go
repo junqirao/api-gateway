@@ -1,21 +1,20 @@
 package upstream
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 
+	"api-gateway/internal/components/utils"
 	"api-gateway/internal/consts"
 	"api-gateway/internal/model"
 )
@@ -29,6 +28,8 @@ type (
 		prefixLength int
 		routingKey   string
 		dialer       *net.Dialer
+		bufPool      *sync.Pool
+
 		httputil.ReverseProxy
 	}
 	resultCallback func(err error)
@@ -74,6 +75,9 @@ func newHTTPHandler(upstream *Upstream, cfg *model.ReverseProxyConfig) *proxy2ht
 			Timeout:   dialTimeout,
 			KeepAlive: 60 * time.Second,
 		},
+		bufPool: &sync.Pool{New: func() any {
+			return utils.NewNopCloseBuf()
+		}},
 	}
 	handler.ReverseProxy = httputil.ReverseProxy{
 		Director: handler.director,
@@ -123,27 +127,25 @@ func (h *proxy2httpHandler) responseModifier(_ *http.Response) error {
 func (h *proxy2httpHandler) Do(ctx context.Context, req *ghttp.Request) (err error) {
 	// prepare
 	var (
-		cb resultCallback = func(e error) { err = e }
+		cb      resultCallback = func(e error) { err = e }
+		retried                = ctx.Value(consts.CtxKeyRetriedTimes).(*atomic.Int64).Load()
 	)
 
 	// when content length > 0, replace request
 	// body with nop closer to avoid read closed
 	// body during retry.
 	if req.ContentLength != 0 {
-		counter, ok := ctx.Value(consts.CtxKeyRetriedTimes).(*atomic.Int64)
-		if ok && counter != nil {
-			if counter.Load() == 0 {
-				buf := &bytes.Buffer{}
-				if _, err = io.Copy(buf, req.Request.Body); err != nil {
-					return
-				}
-				// close original request body
-				if err = req.Request.Body.Close(); err != nil {
-					return err
-				}
-				req.Request.Body = io.NopCloser(buf)
-				g.Log().Infof(ctx, "body copied")
+		if retried == 0 {
+			buf := h.bufPool.Get().(*utils.NopCloseBuf)
+			// copy body to buffer
+			if _, err = buf.ReadFrom(req.Request.Body); err != nil {
+				return
 			}
+			// close original request body
+			if err = req.Request.Body.Close(); err != nil {
+				return
+			}
+			req.Request.Body = buf
 		}
 	}
 
@@ -153,10 +155,25 @@ func (h *proxy2httpHandler) Do(ctx context.Context, req *ghttp.Request) (err err
 	// and ServeHTTP will call errorHandler, try to
 	// pass back error by resultCallback in ctx.
 	h.ServeHTTP(
-		// use unbuffered response raw writer, make sure response body write properly
+		// use unbuffered response raw writer,
+		// make sure response body write properly.
 		req.Response.RawWriter(),
-		// ctx from req.Request, processed by goframe at webservice entrance
+		// ctx from req.Request, processed by
+		// goframe at webservice entrance.
 		req.Request.WithContext(context.WithValue(ctx, consts.CtxKeyResultCallback, cb)),
 	)
+
+	// proxy success or reached retry limit
+	// put back buffer
+	if err == nil || h.retryCount()-retried <= 0 {
+		buf := req.Request.Body.(*utils.NopCloseBuf)
+		buf.Reset()
+		h.bufPool.Put(buf)
+	}
+
 	return
+}
+
+func (h *proxy2httpHandler) retryCount() int64 {
+	return int64(h.upstream.Parent.Config.ReverseProxy.RetryCount)
 }
