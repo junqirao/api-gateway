@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync/atomic"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -44,6 +45,9 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 		return
 	}
 
+	retried := &atomic.Int64{}
+	ctx = context.WithValue(ctx, consts.CtxKeyRetriedTimes, retried)
+
 	// proxy with retry
 	retryCount := upstreams.Config.ReverseProxy.RetryCount
 	canRetry, code := s.doProxy(ctx, upstreams, input)
@@ -60,6 +64,7 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 	// retry loop
 	for canRetry && retryCount > 0 {
 		g.Log().Infof(ctx, "retry proxy, count: %d, reason: %v", retryCount, code)
+		retried.Add(1)
 		canRetry, code = s.doProxy(ctx, upstreams, input)
 		retryCount--
 	}

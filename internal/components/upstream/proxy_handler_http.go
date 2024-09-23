@@ -10,8 +10,10 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"sync/atomic"
 	"time"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 
 	"api-gateway/internal/consts"
@@ -113,16 +115,7 @@ func (h *proxy2httpHandler) errorHandler(_ http.ResponseWriter, request *http.Re
 	}
 }
 
-func (h *proxy2httpHandler) responseModifier(resp *http.Response) error {
-	// if config.Gateway.Debug {
-	// 	// add server id
-	// 	resp.Header.Set(consts.HeaderKeyServerId, h.upstream.Instance.Id)
-	// 	resp.Header.Set(consts.HeaderKeyServerAddr, fmt.Sprintf("%s:%d", h.upstream.Instance.Host, h.upstream.Instance.Port))
-	// 	resp.Header.Set(consts.HeaderKeyServerHostName, h.upstream.Instance.HostName)
-	// 	resp.Header.Set(consts.HeaderKeyServiceUpstreamCount, fmt.Sprintf("%d", h.upstream.Parent.CountUpstream()))
-	// 	resp.Header.Set(consts.HeaderKeyServiceAvailableUpstreamCount, fmt.Sprintf("%d", h.upstream.Parent.CountAvailableUpstream()))
-	// }
-	// if return err!=nil will call h.errorHandler
+func (h *proxy2httpHandler) responseModifier(_ *http.Response) error {
 	return nil
 }
 
@@ -130,34 +123,40 @@ func (h *proxy2httpHandler) responseModifier(resp *http.Response) error {
 func (h *proxy2httpHandler) Do(ctx context.Context, req *ghttp.Request) (err error) {
 	// prepare
 	var (
-		bs []byte
 		cb resultCallback = func(e error) { err = e }
 	)
 
+	// when content length > 0, replace request
+	// body with nop closer to avoid read closed
+	// body during retry.
 	if req.ContentLength != 0 {
-		// read and close request body
-		if bs, err = io.ReadAll(req.Body); err != nil {
-			return
+		counter, ok := ctx.Value(consts.CtxKeyRetriedTimes).(*atomic.Int64)
+		if ok && counter != nil {
+			if counter.Load() == 0 {
+				buf := &bytes.Buffer{}
+				if _, err = io.Copy(buf, req.Request.Body); err != nil {
+					return
+				}
+				// close original request body
+				if err = req.Request.Body.Close(); err != nil {
+					return err
+				}
+				req.Request.Body = io.NopCloser(buf)
+				g.Log().Infof(ctx, "body copied")
+			}
 		}
-		if err = req.Body.Close(); err != nil {
-			return
-		}
-
-		// set request body
-		req.Body = io.NopCloser(bytes.NewBuffer(bs))
 	}
 
 	// serve proxy
+
+	// err will be assigned if caused by ServeHTTP,
+	// and ServeHTTP will call errorHandler, try to
+	// pass back error by resultCallback in ctx.
 	h.ServeHTTP(
 		// use unbuffered response raw writer, make sure response body write properly
 		req.Response.RawWriter(),
 		// ctx from req.Request, processed by goframe at webservice entrance
 		req.Request.WithContext(context.WithValue(ctx, consts.CtxKeyResultCallback, cb)),
 	)
-
-	// when err not nil may cause retry and old body may be closed
-	if err != nil && bs != nil {
-		req.Request.Body = io.NopCloser(bytes.NewBuffer(bs))
-	}
 	return
 }

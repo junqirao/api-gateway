@@ -2,6 +2,7 @@ package consts
 
 const (
 	CtxKeyResultCallback = "___result_callback"
+	CtxKeyRetriedTimes   = "___retried_times"
 )
 
 const (
