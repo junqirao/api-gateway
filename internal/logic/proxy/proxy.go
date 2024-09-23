@@ -94,7 +94,7 @@ func (s sProxy) doProxy(ctx context.Context,
 	ups, err := upstreams.SelectOne(input.Request, balancer.GetOrCreate(input.RoutingKey), filters)
 	if err != nil {
 		// 503
-		code = response.CodeUnavailable.WithDetail(err.Error())
+		code = response.CodeUnavailable
 		return
 	}
 
