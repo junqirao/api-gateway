@@ -36,6 +36,7 @@ func init() {
 func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 	var (
 		upstreams, ok = upstream.GetService(input.RoutingKey)
+		filters       balancer.Filters
 	)
 
 	if !ok || upstreams == nil {
@@ -50,7 +51,7 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 
 	// proxy with retry
 	retryCount := upstreams.Config.ReverseProxy.RetryCount
-	canRetry, code := s.doProxy(ctx, upstreams, input)
+	ups, canRetry, code := s.doProxy(ctx, upstreams, input, filters)
 	if code == nil {
 		// already response by upstream.Upstream
 		return
@@ -62,11 +63,18 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 	}
 
 	// retry loop
+	if ups != nil {
+		filters = append(filters, notFilter(ups.Id))
+	}
+
 	for canRetry && retryCount > 0 {
 		g.Log().Infof(ctx, "retry proxy, count: %d, reason: %v", retryCount, code)
 		retried.Add(1)
-		canRetry, code = s.doProxy(ctx, upstreams, input)
+		ups, canRetry, code = s.doProxy(ctx, upstreams, input, filters, true)
 		retryCount--
+		if ups != nil {
+			filters = append(filters, notFilter(ups.Id))
+		}
 	}
 
 	if code == nil {
@@ -77,9 +85,13 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 	response.WriteJSON(input.Request, code)
 }
 
-func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input *model.ReverseProxyInput, isRetry ...bool) (canRetry bool, code *response.Code) {
+func (s sProxy) doProxy(ctx context.Context,
+	upstreams *upstream.Service,
+	input *model.ReverseProxyInput,
+	filters balancer.Filters,
+	isRetry ...bool) (ups *upstream.Upstream, canRetry bool, code *response.Code) {
 	// load balance
-	ups, err := upstreams.SelectOne(input.Request, balancer.GetOrCreate(input.RoutingKey))
+	ups, err := upstreams.SelectOne(input.Request, balancer.GetOrCreate(input.RoutingKey), filters)
 	if err != nil {
 		// 503
 		code = response.CodeUnavailable.WithDetail(err.Error())
@@ -106,6 +118,7 @@ func (s sProxy) doProxy(ctx context.Context, upstreams *upstream.Service, input 
 	}
 
 	// only execute program once in a request
+	// todo maybe add retryable config in the future
 	if !(len(isRetry) > 0 && isRetry[0]) {
 		// program
 		programs, err := program.GetOrCreate(input.RoutingKey)
@@ -145,4 +158,13 @@ func (s sProxy) writeDebugHeader(r *ghttp.Request, ups *upstream.Upstream) {
 	header.Set(consts.HeaderKeyServerHostName, ups.Instance.HostName)
 	header.Set(consts.HeaderKeyServiceUpstreamCount, fmt.Sprintf("%d", ups.Parent.CountUpstream()))
 	header.Set(consts.HeaderKeyServiceAvailableUpstreamCount, fmt.Sprintf("%d", ups.Parent.CountAvailableUpstream()))
+}
+
+func notFilter(id string) balancer.Filter {
+	return func(o any) bool {
+		if u, ok := o.(*upstream.Upstream); ok {
+			return u.Id != id
+		}
+		return false
+	}
 }

@@ -71,7 +71,7 @@ func (s *Service) Delete(id string) {
 }
 
 // SelectOne selects an Upstream from Service
-func (s *Service) SelectOne(r *ghttp.Request, balancer balancer.Balancer) (u *Upstream, err error) {
+func (s *Service) SelectOne(r *ghttp.Request, balancer balancer.Balancer, filters balancer.Filters) (u *Upstream, err error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -83,7 +83,7 @@ func (s *Service) SelectOne(r *ghttp.Request, balancer balancer.Balancer) (u *Up
 	}
 
 	// using client ip as hash key, only for balancer.StrategyHash
-	v, err := balancer.Pick(available, r.GetClientIp())
+	v, err := balancer.Pick(available, r.GetClientIp(), filters)
 	if err != nil {
 		g.Log().Warningf(r.Context(), "select upstream failed: %v", err)
 		return

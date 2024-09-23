@@ -34,5 +34,5 @@ func New(strategy Strategy) (b Balancer) {
 		b = newRoundRobin()
 	}
 
-	return &wrapper{b: b, backup: newRoundRobin()}
+	return &wrapper{b: b, backup: newRoundRobin(), s: strategy}
 }
