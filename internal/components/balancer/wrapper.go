@@ -34,13 +34,9 @@ func (w *wrapper) Pick(objects []any, args ...any) (o any, err error) {
 
 	// try pick
 	var (
-		arg     = ""
 		filters Filters
 	)
 
-	if len(args) > 0 {
-		arg = args[0].(string)
-	}
 	if len(args) > 1 {
 		if fs, ok := args[1].(Filters); ok {
 			filters = fs
@@ -49,7 +45,7 @@ func (w *wrapper) Pick(objects []any, args ...any) (o any, err error) {
 
 	// max attempts = min(maxAttempts,len(objects))
 	for i := 0; i < min(maxAttempts, len(objects)); i++ {
-		o, err = w.b.Pick(objects, arg)
+		o, err = w.b.Pick(objects, args...)
 		switch {
 		case err == nil:
 		case w.backup != nil,
@@ -57,11 +53,12 @@ func (w *wrapper) Pick(objects []any, args ...any) (o any, err error) {
 			errors.Is(err, ErrMissingArgs):
 			// retry backup balancer
 			g.Log().Infof(context.TODO(), "[balancer] use backup balancer: %s", err)
-			o, err = w.backup.Pick(objects, arg)
+			o, err = w.backup.Pick(objects, args...)
 		}
 		if filters != nil && !filters.Check(o) {
 			if w.s == StrategyHash {
-				// retry may get the same object
+				// retry may get the same object in strategy hash
+				err = ErrNoObject
 				return
 			}
 			continue

@@ -11,9 +11,5 @@ func newRandom() Balancer {
 }
 
 func (r *randomBalancer) Pick(objects []any, args ...any) (o any, err error) {
-	if len(objects) == 0 {
-		err = ErrNoObject
-		return
-	}
 	return objects[r.r.IntN(len(objects))], nil
 }
