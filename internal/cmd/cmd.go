@@ -16,6 +16,7 @@ import (
 	"api-gateway/internal/components/prometheus"
 	"api-gateway/internal/components/response"
 	"api-gateway/internal/components/upstream"
+	"api-gateway/internal/consts"
 	"api-gateway/internal/controller/reverse"
 )
 
@@ -37,6 +38,9 @@ var (
 				g.Log().Info(ctx, "pprof enabled")
 				s.EnablePProf()
 			}
+
+			// max body size, default 512M
+			s.SetClientMaxBodySize(g.Cfg().MustGet(ctx, "server.max_body_size", consts.DefaultMaxBodySize).Int64())
 
 			// middleware
 			s.BindMiddleware(pattern, prometheus.Middleware)
