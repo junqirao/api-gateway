@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync/atomic"
+	"time"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -13,10 +14,8 @@ import (
 
 	"api-gateway/internal/components/balancer"
 	"api-gateway/internal/components/breaker"
-	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/limiter"
 	"api-gateway/internal/components/response"
-	"api-gateway/internal/consts"
 	"api-gateway/internal/model"
 )
 
@@ -25,6 +24,7 @@ type (
 	Upstream struct {
 		registry.Instance
 
+		// use query per second as measure target
 		balancer.Measurable
 		balancer.Weighable
 
@@ -37,17 +37,21 @@ type (
 
 	// UpsState upstream state
 	UpsState struct {
-		HostName     string `json:"hostname"`
-		InstanceId   string `json:"instance_id"`
-		Healthy      bool   `json:"healthy"`
-		Weight       int64  `json:"weight"`
-		Load         int64  `json:"load"`
-		BreakerState string `json:"breaker_state"`
+		HostName     string  `json:"hostname"`
+		InstanceId   string  `json:"instance_id"`
+		Healthy      bool    `json:"healthy"`
+		Weight       int64   `json:"weight"`
+		WeightRatio  float64 `json:"weight_ratio"`
+		Load         int64   `json:"load"`
+		BreakerState string  `json:"breaker_state"`
 	}
 )
 
 func NewUpstream(ctx context.Context, instance *registry.Instance, cfg model.ServiceConfig) *Upstream {
-	var weight int64 = 0
+	var (
+		weight int64 = 0
+	)
+
 	if w, ok := instance.Meta["weight"]; ok {
 		weight = gconv.Int64(w)
 	} else {
@@ -62,7 +66,7 @@ func NewUpstream(ctx context.Context, instance *registry.Instance, cfg model.Ser
 		breaker:    breaker.New(breakerSetting),
 		limiter:    limiter.NewLimiter(cfg.RateLimiter),
 		highLoad:   &atomic.Bool{},
-		Measurable: balancer.NewMeasurable(),
+		Measurable: balancer.NewMeasurable(time.Second),
 		Weighable:  balancer.NewWeighable(weight),
 	}
 	u.proxyHandler = NewHandler(ctx, u, cfg.ReverseProxy)
@@ -73,6 +77,9 @@ func NewUpstream(ctx context.Context, instance *registry.Instance, cfg model.Ser
 // Allow is a combined entrance of rate limiter and circuit breaker,
 // returns limiter allow flag and circuit breaker callback
 func (u *Upstream) Allow(_ context.Context) (cb func(success bool), code *response.Code) {
+	// add measurable
+	u.AddLoad(1)
+
 	// rate limiter
 	if ok := u.limiter.Allow(); !ok {
 		// 429
@@ -110,30 +117,6 @@ func (u *Upstream) healthy() bool {
 	return u.breaker.State() != gobreaker.StateOpen && !u.highLoad.Load()
 }
 
-func (u *Upstream) updateConfig(module string) {
-	ctx := context.Background()
-	// local caches in registry always updated before this function called
-	cfg, _ := config.GetServiceConfig(u.ServiceName)
-	switch module {
-	case consts.ModuleNameRateLimiter:
-		if !model.ValueChanged(cfg.RateLimiter, u.Parent.Config.RateLimiter) {
-			g.Log().Infof(ctx, "upstream %s rate limiter not changed", u.Identity())
-			return
-		}
-		u.limiter = limiter.NewLimiter(cfg.RateLimiter)
-		g.Log().Infof(ctx, "upstream %s limiter -> %+v", u.Identity(), cfg.RateLimiter)
-		u.Parent.Config.RateLimiter = cfg.RateLimiter
-	case consts.ModuleNameBreaker:
-		if !model.ValueChanged(cfg.Breaker, u.Parent.Config.Breaker) {
-			g.Log().Infof(ctx, "upstream %s breaker not changed", u.Identity())
-			return
-		}
-		u.breaker = breaker.New(cfg.Breaker.Setting(ctx))
-		g.Log().Infof(ctx, "upstream %s breaker -> %+v", u.Identity(), cfg.Breaker)
-		u.Parent.Config.Breaker = cfg.Breaker
-	}
-}
-
 // State of upstream
 func (u *Upstream) State() *UpsState {
 	return &UpsState{
@@ -141,6 +124,7 @@ func (u *Upstream) State() *UpsState {
 		InstanceId:   u.Instance.Id,
 		Healthy:      u.healthy(),
 		Weight:       u.Weight(),
+		WeightRatio:  float64(u.Weight()) / float64(u.Parent.totalWeight()),
 		Load:         u.Load(),
 		BreakerState: u.breaker.State().String(),
 	}

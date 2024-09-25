@@ -125,3 +125,11 @@ func (s *Service) configEventHandler(t config.EventType, module, key string, val
 		go up.updateConfig(module)
 	}
 }
+
+func (s *Service) totalWeight() int64 {
+	var w int64 = 0
+	for _, up := range s.ups {
+		w += up.Weight()
+	}
+	return w
+}

@@ -45,7 +45,7 @@ func (w wantObject) judge(v int64) bool {
 
 func newTestObject(val int64, weight int64) *testObject {
 	return &testObject{
-		Measurable: NewMeasurable(val),
+		Measurable: NewMeasurable(time.Second, val),
 		Weighable:  NewWeighable(weight),
 		val:        val,
 	}
