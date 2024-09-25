@@ -38,6 +38,10 @@ func startEchoServer(name string, port, weight int) {
 			if slp > 0 {
 				time.Sleep(time.Millisecond * time.Duration(slp))
 			}
+			file := r.GetUploadFile("file")
+			if file != nil {
+				fmt.Printf("file: %s, size: %dbytes\n", file.Filename, file.Size)
+			}
 			fmt.Printf("echo: %d\n", st)
 			response.WriteJSON(r, response.NewCode(st, id, st))
 		})
