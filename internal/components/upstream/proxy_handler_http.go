@@ -127,26 +127,25 @@ func (h *proxy2httpHandler) responseModifier(_ *http.Response) error {
 func (h *proxy2httpHandler) Do(ctx context.Context, req *ghttp.Request) (err error) {
 	// prepare
 	var (
-		cb      resultCallback = func(e error) { err = e }
-		retried                = ctx.Value(consts.CtxKeyRetriedTimes).(*atomic.Int64).Load()
+		cb       resultCallback = func(e error) { err = e }
+		retried                 = ctx.Value(consts.CtxKeyRetriedTimes).(*atomic.Int64).Load()
+		canRetry                = ctx.Value(consts.CtxKeyCanRetry).(*atomic.Bool).Load()
 	)
 
-	// when content length > 0, replace request
-	// body with nop closer to avoid read closed
-	// body during retry.
-	if req.ContentLength != 0 {
-		if retried == 0 {
-			buf := h.bufPool.Get().(*utils.NopCloseBuf)
-			// copy body to buffer
-			if _, err = buf.ReadFrom(req.Request.Body); err != nil {
-				return
-			}
-			// close original request body
-			if err = req.Request.Body.Close(); err != nil {
-				return
-			}
-			req.Request.Body = buf
+	// when canRetry, replace request body with
+	// nop closer at first place to avoid read
+	// closed body during retry.
+	if canRetry && retried == 0 {
+		buf := h.bufPool.Get().(*utils.NopCloseBuf)
+		// copy body to buffer
+		if _, err = buf.ReadFrom(req.Request.Body); err != nil {
+			return
 		}
+		// close original request body
+		if err = req.Request.Body.Close(); err != nil {
+			return
+		}
+		req.Request.Body = buf
 	}
 
 	// serve proxy
@@ -163,9 +162,9 @@ func (h *proxy2httpHandler) Do(ctx context.Context, req *ghttp.Request) (err err
 		req.Request.WithContext(context.WithValue(ctx, consts.CtxKeyResultCallback, cb)),
 	)
 
-	// proxy success or reached retry limit
-	// put back buffer
-	if err == nil || h.retryCount()-retried <= 0 {
+	// when proxy success or reached retry limit
+	// put back buffer, only work if canRetry == true
+	if canRetry && err == nil || h.retryCount()-retried <= 0 {
 		if buf, ok := req.Request.Body.(*utils.NopCloseBuf); ok {
 			buf.Reset()
 			h.bufPool.Put(buf)

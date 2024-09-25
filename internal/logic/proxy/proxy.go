@@ -46,8 +46,20 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 		return
 	}
 
-	retried := &atomic.Int64{}
+	var (
+		retried   = &atomic.Int64{}
+		retryable = &atomic.Bool{}
+	)
+	// retry conditions
+	retryable.Store(
+		// content-type = application/json
+		input.Request.GetHeader(consts.HeaderKeyContentType) == consts.HeaderValueContentTypeJSON &&
+			// content length > 0 && content length < RetryMaxContentLength (10M)
+			input.Request.ContentLength > 0 &&
+			input.Request.ContentLength < consts.RetryMaxContentLength)
+
 	ctx = context.WithValue(ctx, consts.CtxKeyRetriedTimes, retried)
+	ctx = context.WithValue(ctx, consts.CtxKeyCanRetry, retryable)
 
 	// proxy with retry
 	retryCount := upstreams.Config.ReverseProxy.RetryCount
@@ -63,17 +75,21 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 	}
 
 	// retry loop
-	if ups != nil {
-		filters = append(filters, notFilter(ups.Id))
-	}
-
-	for canRetry && retryCount > 0 {
-		g.Log().Infof(ctx, "retry proxy, count: %d, reason: %v", retryCount, code)
-		retried.Add(1)
-		ups, canRetry, code = s.doProxy(ctx, upstreams, input, filters, true)
-		retryCount--
+	if retryable.Load() && canRetry {
+		// add filter of first try
 		if ups != nil {
 			filters = append(filters, notFilter(ups.Id))
+		}
+
+		for retryCount > 0 {
+			g.Log().Infof(ctx, "retry proxy, count: %d, reason: %v", retryCount, code)
+			retried.Add(1)
+			ups, canRetry, code = s.doProxy(ctx, upstreams, input, filters, true)
+			retryCount--
+			// add filter
+			if ups != nil {
+				filters = append(filters, notFilter(ups.Id))
+			}
 		}
 	}
 
@@ -102,6 +118,11 @@ func (s sProxy) doProxy(ctx context.Context,
 	if config.Gateway.Debug {
 		s.writeDebugHeader(input.Request, ups)
 	}
+
+	defer func() {
+		// cant retry when content length > consts.RetryMaxContentLength
+		canRetry = canRetry && input.Request.ContentLength > consts.RetryMaxContentLength
+	}()
 
 	// circuit breaker and rate limiter
 	cb, code := ups.Allow(ctx)
