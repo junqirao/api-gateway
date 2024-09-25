@@ -166,9 +166,10 @@ func (h *proxy2httpHandler) Do(ctx context.Context, req *ghttp.Request) (err err
 	// proxy success or reached retry limit
 	// put back buffer
 	if err == nil || h.retryCount()-retried <= 0 {
-		buf := req.Request.Body.(*utils.NopCloseBuf)
-		buf.Reset()
-		h.bufPool.Put(buf)
+		if buf, ok := req.Request.Body.(*utils.NopCloseBuf); ok {
+			buf.Reset()
+			h.bufPool.Put(buf)
+		}
 	}
 
 	return
