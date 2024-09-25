@@ -3,16 +3,20 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
+	"github.com/gogf/gf/v2/os/gfile"
 	registry "github.com/junqirao/simple-registry"
 
 	"api-gateway/internal/components/grace"
 	"api-gateway/internal/components/response"
+	"api-gateway/internal/consts"
 )
 
 func TestHttpSrv0(t *testing.T) {
@@ -31,6 +35,7 @@ func startEchoServer(name string, port, weight int) {
 	id := fmt.Sprintf("server#%v", name)
 	server := g.Server(id)
 	server.SetPort(port)
+	server.SetClientMaxBodySize(consts.DefaultMaxBodySize)
 	server.Group("/", func(group *ghttp.RouterGroup) {
 		group.ALL("/echo", func(r *ghttp.Request) {
 			st := r.GetQuery("status", 200).Int()
@@ -41,6 +46,24 @@ func startEchoServer(name string, port, weight int) {
 			file := r.GetUploadFile("file")
 			if file != nil {
 				fmt.Printf("file: %s, size: %dbytes\n", file.Filename, file.Size)
+				f, err := file.Open()
+				if err != nil {
+					response.WriteJSON(r, response.NewCode(st, id, 500).WithMessage(err.Error()))
+					return
+				}
+				defer f.Close()
+				local, err := gfile.OpenFile(fmt.Sprintf("./%s", file.Filename), os.O_CREATE|os.O_RDWR, gfile.DefaultPermCopy)
+				if err != nil {
+					response.WriteJSON(r, response.NewCode(st, id, 500).WithMessage(err.Error()))
+					return
+				}
+				defer local.Close()
+				n, err := io.Copy(local, f)
+				if err != nil {
+					response.WriteJSON(r, response.NewCode(st, id, 500).WithMessage(err.Error()))
+					return
+				}
+				fmt.Printf("copy bytes: %d\n", n)
 			}
 			fmt.Printf("echo: %d\n", st)
 			response.WriteJSON(r, response.NewCode(st, id, st))
