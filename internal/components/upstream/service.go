@@ -39,7 +39,7 @@ func NewService(routingKey string, cfg config.ServiceConfig) *Service {
 }
 
 func GetService(routingKey string) (*Service, bool) {
-	return cache.getService(routingKey)
+	return Cache.GetService(routingKey)
 }
 
 // Set upstream by upsert
@@ -109,6 +109,12 @@ func (s *Service) CountAvailableUpstream() int {
 		s.available = cnt
 	}
 	return s.available
+}
+
+func (s *Service) Upstreams() []*Upstream {
+	res := make([]*Upstream, len(s.ups))
+	copy(res, s.ups)
+	return res
 }
 
 func (s *Service) configEventHandler(t config.EventType, module, key string, value interface{}) {

@@ -8,4 +8,5 @@ import (
 	_ "api-gateway/internal/logic/config"
 	_ "api-gateway/internal/logic/program"
 	_ "api-gateway/internal/logic/proxy"
+	_ "api-gateway/internal/logic/upstream"
 )

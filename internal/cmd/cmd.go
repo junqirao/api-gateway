@@ -14,11 +14,11 @@ import (
 	cfg "api-gateway/internal/components/config"
 	"api-gateway/internal/components/prometheus"
 	"api-gateway/internal/components/response"
-	"api-gateway/internal/components/upstream"
 	"api-gateway/internal/consts"
 	"api-gateway/internal/controller/config"
 	"api-gateway/internal/controller/program"
 	"api-gateway/internal/controller/reverse"
+	"api-gateway/internal/controller/upstream"
 )
 
 var (
@@ -69,12 +69,11 @@ var (
 					group.Group("/", func(group *ghttp.RouterGroup) {
 						group.Middleware(response.Middleware)
 						group.Bind(
-							config.NewV1(),  // config
-							program.NewV1(), // program
+							config.NewV1(),   // config
+							program.NewV1(),  // program
+							upstream.NewV1(), // upstream
 						)
 					})
-					// upstream
-					upstream.Router(group)
 					// prometheus
 					group.ALL("/metrics", func(r *ghttp.Request) {
 						promhttp.Handler().ServeHTTP(r.Response.RawWriter(), r.Request)

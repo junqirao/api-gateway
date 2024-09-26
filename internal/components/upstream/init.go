@@ -5,5 +5,5 @@ import (
 )
 
 func Init(ctx context.Context) {
-	cache = newUpstreamCache(ctx)
+	Cache = newUpstreamCache(ctx)
 }
