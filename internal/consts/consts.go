@@ -37,6 +37,7 @@ const (
 
 // storage name define
 const (
-	StorageNameProgram  = "program"
-	StorageNameVariable = "program_variable"
+	StorageNameServiceConfig = "service_config"
+	StorageNameProgram       = "program"
+	StorageNameVariable      = "program_variable"
 )

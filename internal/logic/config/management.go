@@ -8,6 +8,7 @@ import (
 
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/response"
+	"api-gateway/internal/consts"
 	"api-gateway/internal/model"
 	"api-gateway/internal/service"
 )
@@ -38,6 +39,6 @@ func (s sConfigManagement) UpdateConfig(ctx context.Context, input model.UpdateC
 		return response.CodeInvalidParameter.WithDetail(err.Error())
 	}
 
-	return registry.Storages.GetStorage(config.StorageNameServiceConfig).
+	return registry.Storages.GetStorage(consts.StorageNameServiceConfig).
 		Set(ctx, fmt.Sprintf("%s%s%s", input.ServiceName, config.StorageSeparator, input.Model), ptr)
 }

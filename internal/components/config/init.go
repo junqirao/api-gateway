@@ -6,6 +6,8 @@ import (
 	"sync"
 
 	registry "github.com/junqirao/simple-registry"
+
+	"api-gateway/internal/consts"
 )
 
 var (
@@ -26,7 +28,7 @@ func Init(ctx context.Context) {
 }
 
 func initConfigUpdateEventBus() {
-	registry.Storages.SetEventHandler(StorageNameServiceConfig, func(t registry.EventType, key string, value interface{}) {
+	registry.Storages.SetEventHandler(consts.StorageNameServiceConfig, func(t registry.EventType, key string, value interface{}) {
 		parts := strings.Split(key, StorageSeparator)
 		if len(parts) < 2 {
 			// drop invalid key

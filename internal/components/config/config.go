@@ -16,8 +16,6 @@ var (
 	Gateway *GatewayConfig
 	// StorageSeparator same as registry.storage.separator
 	StorageSeparator = g.Cfg().MustGet(context.Background(), "registry.storage.separator", "/").String()
-	// StorageNameServiceConfig name
-	StorageNameServiceConfig = "service_config"
 )
 
 // default value define
@@ -45,12 +43,12 @@ var (
 
 func GetServiceConfig(serviceName string) (*ServiceConfig, bool) {
 	ctx := context.Background()
-	kvs, err := registry.Storages.GetStorage(StorageNameServiceConfig).Get(ctx, serviceName)
+	kvs, err := registry.Storages.GetStorage(consts.StorageNameServiceConfig).Get(ctx, serviceName)
 	switch {
 	case errors.Is(err, registry.ErrStorageNotFound):
 	case err == nil:
 	default:
-		g.Log().Infof(ctx, "failed to get service %s config, using default. result=%v", StorageNameServiceConfig, err)
+		g.Log().Infof(ctx, "failed to get service %s config, using default. result=%v", consts.StorageNameServiceConfig, err)
 		return defaultServiceConfig.Clone(), false
 	}
 	if len(kvs) == 0 {
