@@ -3,15 +3,15 @@ package limiter
 import (
 	"golang.org/x/time/rate"
 
-	"api-gateway/internal/model"
+	"api-gateway/internal/components/config"
 )
 
 type Limiter struct {
-	cfg model.RateLimiterConfig
+	cfg config.RateLimiterConfig
 	*rate.Limiter
 }
 
-func NewLimiter(cfg model.RateLimiterConfig) *Limiter {
+func NewLimiter(cfg config.RateLimiterConfig) *Limiter {
 	return &Limiter{
 		Limiter: rate.NewLimiter(NewLimit(cfg.Rate), cfg.Peak),
 	}

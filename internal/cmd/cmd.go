@@ -11,12 +11,13 @@ import (
 	"github.com/gogf/gf/v2/os/gcmd"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"api-gateway/internal/components/config"
+	cfg "api-gateway/internal/components/config"
 	"api-gateway/internal/components/program"
 	"api-gateway/internal/components/prometheus"
 	"api-gateway/internal/components/response"
 	"api-gateway/internal/components/upstream"
 	"api-gateway/internal/consts"
+	"api-gateway/internal/controller/config"
 	"api-gateway/internal/controller/reverse"
 )
 
@@ -27,7 +28,7 @@ var (
 		Brief: "start http server",
 		Func: func(ctx context.Context, parser *gcmd.Parser) (err error) {
 			// prepare
-			pattern := config.Gateway.Prefix
+			pattern := cfg.Gateway.Prefix
 			if !strings.HasSuffix(pattern, "/") {
 				pattern += "/"
 			}
@@ -66,7 +67,11 @@ var (
 					}
 
 					// config
-					config.Router(group)
+					// config.Router(group)
+					group.Group("/", func(group *ghttp.RouterGroup) {
+						group.Middleware(response.Middleware)
+						group.Bind(config.NewV1())
+					})
 					// program
 					program.Router(group)
 					// upstream

@@ -10,7 +10,6 @@ import (
 	"api-gateway/internal/components/balancer"
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/consts"
-	"api-gateway/internal/model"
 )
 
 const (
@@ -23,12 +22,12 @@ type (
 		mu         sync.RWMutex
 		ups        []*Upstream
 		available  int
-		Config     model.ServiceConfig
+		Config     config.ServiceConfig
 		RoutingKey string
 	}
 )
 
-func NewService(routingKey string, cfg model.ServiceConfig) *Service {
+func NewService(routingKey string, cfg config.ServiceConfig) *Service {
 	s := &Service{
 		mu:         sync.RWMutex{},
 		ups:        make([]*Upstream, 0),

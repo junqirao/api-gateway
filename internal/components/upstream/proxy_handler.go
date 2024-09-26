@@ -3,10 +3,10 @@ package upstream
 import (
 	"context"
 
-	"api-gateway/internal/model"
+	"api-gateway/internal/components/config"
 )
 
-func NewHandler(_ context.Context, ups *Upstream, cfg model.ReverseProxyConfig) (handler model.ReverseProxyHandler) {
+func NewHandler(_ context.Context, ups *Upstream, cfg config.ReverseProxyConfig) (handler ReverseProxyHandler) {
 	// todo distinguish handler type by registry.Instance
 	handler = newHTTPHandler(ups, &cfg)
 	return

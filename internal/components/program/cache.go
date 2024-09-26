@@ -7,8 +7,6 @@ import (
 
 	"github.com/gogf/gf/v2/frame/g"
 	registry "github.com/junqirao/simple-registry"
-
-	"api-gateway/internal/model"
 )
 
 var (
@@ -42,7 +40,7 @@ func buildCacheByService(serviceName string) (*Programs, error) {
 
 	ps := &Programs{}
 	for _, kv := range kvs {
-		info := new(model.ProgramInfo)
+		info := new(Info)
 		if err := kv.Value.Scan(&info); err != nil {
 			g.Log().Warningf(context.Background(), "scan program info failed: %v", err)
 			continue
@@ -65,7 +63,7 @@ func buildCache(ctx context.Context) {
 	}
 
 	for _, kv := range kvs {
-		info := new(model.ProgramInfo)
+		info := new(Info)
 		if err = kv.Value.Scan(&info); err != nil {
 			g.Log().Warningf(ctx, "scan program info failed: %v", err)
 			continue

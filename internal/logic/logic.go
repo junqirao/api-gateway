@@ -5,5 +5,6 @@
 package logic
 
 import (
+	_ "api-gateway/internal/logic/config"
 	_ "api-gateway/internal/logic/proxy"
 )

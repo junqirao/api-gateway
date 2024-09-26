@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"api-gateway/internal/model"
+	"api-gateway/internal/components/config"
 )
 
 func TestLimiter(t *testing.T) {
-	l := NewLimiter(model.RateLimiterConfig{
+	l := NewLimiter(config.RateLimiterConfig{
 		Rate: 1,
 		Peak: 2,
 	})

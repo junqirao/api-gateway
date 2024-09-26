@@ -14,15 +14,15 @@ import (
 
 	"github.com/gogf/gf/v2/net/ghttp"
 
+	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/utils"
 	"api-gateway/internal/consts"
-	"api-gateway/internal/model"
 )
 
 type (
 	proxy2httpHandler struct {
 		upstream     *Upstream
-		cfg          *model.ReverseProxyConfig
+		cfg          *config.ReverseProxyConfig
 		scheme       string
 		host         string
 		prefixLength int
@@ -35,7 +35,7 @@ type (
 	resultCallback func(err error)
 )
 
-func newHTTPHandler(upstream *Upstream, cfg *model.ReverseProxyConfig) *proxy2httpHandler {
+func newHTTPHandler(upstream *Upstream, cfg *config.ReverseProxyConfig) *proxy2httpHandler {
 	var (
 		ins                 = &upstream.Instance
 		scheme              = cfg.Scheme

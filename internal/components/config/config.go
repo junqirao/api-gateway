@@ -9,12 +9,11 @@ import (
 	registry "github.com/junqirao/simple-registry"
 
 	"api-gateway/internal/consts"
-	"api-gateway/internal/model"
 )
 
 var (
 	// Gateway global config
-	Gateway *model.GatewayConfig
+	Gateway *GatewayConfig
 	// StorageSeparator same as registry.storage.separator
 	StorageSeparator = g.Cfg().MustGet(context.Background(), "registry.storage.separator", "/").String()
 	// StorageNameServiceConfig name
@@ -24,27 +23,27 @@ var (
 // default value define
 var (
 	defaultGatewayPrefix = "/api/"
-	defaultRPConfig      = model.ReverseProxyConfig{
+	defaultRPConfig      = ReverseProxyConfig{
 		TrimRoutingKeyPrefix: true,
 		RetryCount:           1,
 	}
-	defaultLBConfig = model.LoadBalanceConfig{
+	defaultLBConfig = LoadBalanceConfig{
 		Strategy: "random",
 	}
-	defaultBreakerConfig = model.BreakerConfig{
+	defaultBreakerConfig = BreakerConfig{
 		MaxFailures:         5,
 		HalfOpenMaxRequests: 1,
 		OpenTimeout:         "1m",
 		Interval:            "1m",
 	}
-	defaultServiceConfig = &model.ServiceConfig{
+	defaultServiceConfig = &ServiceConfig{
 		ReverseProxy: defaultRPConfig,
 		LoadBalance:  defaultLBConfig,
 		Breaker:      defaultBreakerConfig,
 	}
 )
 
-func GetServiceConfig(serviceName string) (*model.ServiceConfig, bool) {
+func GetServiceConfig(serviceName string) (*ServiceConfig, bool) {
 	ctx := context.Background()
 	kvs, err := registry.Storages.GetStorage(StorageNameServiceConfig).Get(ctx, serviceName)
 	switch {
@@ -88,7 +87,7 @@ func GetServiceConfig(serviceName string) (*model.ServiceConfig, bool) {
 func loadConfigs(ctx context.Context) {
 	// load gateway config
 	if err := g.Cfg().MustGet(ctx, "gateway",
-		&model.GatewayConfig{Prefix: defaultGatewayPrefix}).Scan(&Gateway); err != nil {
+		&GatewayConfig{Prefix: defaultGatewayPrefix}).Scan(&Gateway); err != nil {
 		g.Log().Errorf(ctx, "load gateway config error: %v", err)
 	}
 	// gateway.debug follow server.debug

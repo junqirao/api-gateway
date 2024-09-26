@@ -6,9 +6,9 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 
 	"api-gateway/internal/components/breaker"
+	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/limiter"
 	"api-gateway/internal/consts"
-	"api-gateway/internal/model"
 )
 
 func (u *Upstream) updateConfig(ctx context.Context, module string) {
@@ -16,7 +16,7 @@ func (u *Upstream) updateConfig(ctx context.Context, module string) {
 	cfg := u.Parent.Config
 	switch module {
 	case consts.ModuleNameRateLimiter:
-		if !model.ValueChanged(cfg.RateLimiter, u.Parent.Config.RateLimiter) {
+		if !config.ValueChanged(cfg.RateLimiter, u.Parent.Config.RateLimiter) {
 			g.Log().Infof(ctx, "upstream %s rate limiter not changed", u.Identity())
 			return
 		}
@@ -25,7 +25,7 @@ func (u *Upstream) updateConfig(ctx context.Context, module string) {
 		u.limiter.SetBurst(cfg.RateLimiter.Peak)
 		g.Log().Infof(ctx, "upstream %s limiter -> %+v", u.Identity(), cfg.RateLimiter)
 	case consts.ModuleNameBreaker:
-		if !model.ValueChanged(cfg.Breaker, u.Parent.Config.Breaker) {
+		if !config.ValueChanged(cfg.Breaker, u.Parent.Config.Breaker) {
 			g.Log().Infof(ctx, "upstream %s breaker not changed", u.Identity())
 			return
 		}

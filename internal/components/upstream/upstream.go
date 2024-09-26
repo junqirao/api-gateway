@@ -14,9 +14,9 @@ import (
 
 	"api-gateway/internal/components/balancer"
 	"api-gateway/internal/components/breaker"
+	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/limiter"
 	"api-gateway/internal/components/response"
-	"api-gateway/internal/model"
 )
 
 type (
@@ -29,7 +29,7 @@ type (
 		balancer.Weighable
 
 		Parent       *Service
-		proxyHandler model.ReverseProxyHandler
+		proxyHandler ReverseProxyHandler
 		limiter      *limiter.Limiter
 		breaker      *breaker.Breaker
 		highLoad     *atomic.Bool
@@ -45,9 +45,15 @@ type (
 		Load         int64   `json:"load"`
 		BreakerState string  `json:"breaker_state"`
 	}
+
+	// ReverseProxyHandler interface of reverse proxy
+	ReverseProxyHandler interface {
+		// Do reverse proxy
+		Do(ctx context.Context, req *ghttp.Request) (err error)
+	}
 )
 
-func NewUpstream(ctx context.Context, instance *registry.Instance, cfg model.ServiceConfig) *Upstream {
+func NewUpstream(ctx context.Context, instance *registry.Instance, cfg config.ServiceConfig) *Upstream {
 	var (
 		weight int64 = 0
 	)

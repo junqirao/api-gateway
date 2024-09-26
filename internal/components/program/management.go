@@ -9,7 +9,6 @@ import (
 
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/response"
-	"api-gateway/internal/model"
 )
 
 var (
@@ -54,9 +53,9 @@ func (h *managementHandler) GetProgram(r *ghttp.Request) {
 		return
 	}
 
-	res := make(map[string][]*model.ProgramInfo)
+	res := make(map[string][]*Info)
 	for _, kv := range kvs {
-		info := new(model.ProgramInfo)
+		info := new(Info)
 		if err = kv.Value.Scan(&info); err != nil {
 			g.Log().Warningf(r.Context(), "scan program info failed: %v", err)
 			continue
@@ -68,7 +67,7 @@ func (h *managementHandler) GetProgram(r *ghttp.Request) {
 
 // SetProgram set
 func (h *managementHandler) SetProgram(r *ghttp.Request) {
-	req := new(model.ProgramInfo)
+	req := new(Info)
 	if err := r.Parse(&req); err != nil {
 		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err.Error()))
 		return

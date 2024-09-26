@@ -12,8 +12,6 @@ import (
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/encoding/gbase64"
 	"github.com/gogf/gf/v2/frame/g"
-
-	"api-gateway/internal/model"
 )
 
 const (
@@ -41,6 +39,11 @@ type (
 	Programs struct {
 		mu sync.RWMutex
 		ps []*Program
+	}
+	Info struct {
+		Expr        string `json:"expr"` // base64 encoded
+		Name        string `json:"name"`
+		ServiceName string `json:"service_name"`
 	}
 	resultWrapper struct {
 		v    any
@@ -165,7 +168,7 @@ func (p *Program) exprMultilineWrapper(lines ...*resultWrapper) (errMsg string) 
 	return
 }
 
-func (p *Programs) Create(info *model.ProgramInfo) error {
+func (p *Programs) Create(info *Info) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
