@@ -7,6 +7,8 @@ import (
 
 	"github.com/gogf/gf/v2/frame/g"
 	registry "github.com/junqirao/simple-registry"
+
+	"api-gateway/internal/consts"
 )
 
 var (
@@ -23,7 +25,7 @@ func GetOrCreate(serviceName string) (*Programs, error) {
 }
 
 func buildCacheByService(serviceName string) (*Programs, error) {
-	sto := registry.Storages.GetStorage(storageNameProgram)
+	sto := registry.Storages.GetStorage(consts.StorageNameProgram)
 	kvs, err := sto.Get(context.Background(), serviceName)
 	switch {
 	case err == nil:
@@ -56,7 +58,7 @@ func buildCacheByService(serviceName string) (*Programs, error) {
 }
 
 func buildCache(ctx context.Context) {
-	kvs, err := registry.Storages.GetStorage(storageNameProgram).Get(ctx)
+	kvs, err := registry.Storages.GetStorage(consts.StorageNameProgram).Get(ctx)
 	if err != nil {
 		g.Log().Errorf(ctx, "build program cache failed: %v", err)
 		return

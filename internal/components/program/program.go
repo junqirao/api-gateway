@@ -89,7 +89,7 @@ func (p *Program) Exec(ctx context.Context, env ...map[string]interface{}) error
 		e = make(map[string]interface{})
 	}
 
-	e[envKeyGlobalVariable] = variables.GetGlobalVariables(ctx)
+	e[envKeyGlobalVariable] = Variables.GetGlobalVariables(ctx)
 	e[envKeyCtx] = ctx
 	e[envKeyExprMultilineWrapper] = p.exprMultilineWrapper
 	e[envKeyNewResultWrapper] = newResultWrapper
@@ -104,7 +104,7 @@ func (p *Program) Exec(ctx context.Context, env ...map[string]interface{}) error
 		return errors.New(reasonStr)
 	}
 	e[envKeySetGlobalVariable] = func(key string, value interface{}) error {
-		return variables.SetGlobalVariable(ctx, key, value)
+		return Variables.SetGlobalVariable(ctx, key, value)
 	}
 
 	// run

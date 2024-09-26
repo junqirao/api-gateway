@@ -9,6 +9,7 @@ import (
 
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/response"
+	"api-gateway/internal/consts"
 )
 
 var (
@@ -47,7 +48,7 @@ func (h *managementHandler) GetProgram(r *ghttp.Request) {
 		return
 	}
 
-	kvs, err := registry.Storages.GetStorage(storageNameProgram).Get(r.Context(), req.ServiceName)
+	kvs, err := registry.Storages.GetStorage(consts.StorageNameProgram).Get(r.Context(), req.ServiceName)
 	if err != nil {
 		response.WriteJSON(r, response.CodeDefaultFailure.WithDetail(err.Error()))
 		return
@@ -72,7 +73,7 @@ func (h *managementHandler) SetProgram(r *ghttp.Request) {
 		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err.Error()))
 		return
 	}
-	sto := registry.Storages.GetStorage(storageNameProgram)
+	sto := registry.Storages.GetStorage(consts.StorageNameProgram)
 	err := sto.Set(r.Context(), fmt.Sprintf("%s%s%s", req.ServiceName, config.StorageSeparator, req.Name), req)
 	if err != nil {
 		response.WriteJSON(r, response.CodeDefaultFailure.WithDetail(err.Error()))
@@ -90,7 +91,7 @@ func (h *managementHandler) DeleteProgram(r *ghttp.Request) {
 		return
 	}
 
-	sto := registry.Storages.GetStorage(storageNameProgram)
+	sto := registry.Storages.GetStorage(consts.StorageNameProgram)
 	err := sto.Delete(r.Context(), fmt.Sprintf("%s%s%s", req.ServiceName, config.StorageSeparator, req.Name))
 	if err != nil {
 		response.WriteJSON(r, response.CodeDefaultFailure.WithDetail(err.Error()))
@@ -101,7 +102,7 @@ func (h *managementHandler) DeleteProgram(r *ghttp.Request) {
 
 // GetGlobalVariables get global variable
 func (h *managementHandler) GetGlobalVariables(r *ghttp.Request) {
-	response.WriteData(r, response.CodeDefaultSuccess, variables.GetGlobalVariables(r.Context()))
+	response.WriteData(r, response.CodeDefaultSuccess, Variables.GetGlobalVariables(r.Context()))
 }
 
 // SetGlobalVariables set global variable
@@ -112,7 +113,7 @@ func (h *managementHandler) SetGlobalVariables(r *ghttp.Request) {
 		return
 	}
 
-	if err := variables.SetGlobalVariable(r.Context(), req.Key, req.Value); err != nil {
+	if err := Variables.SetGlobalVariable(r.Context(), req.Key, req.Value); err != nil {
 		response.WriteJSON(r, response.CodeDefaultFailure.WithDetail(err.Error()))
 		return
 	}
@@ -126,7 +127,7 @@ func (h *managementHandler) DeleteGlobalVariables(r *ghttp.Request) {
 		response.WriteJSON(r, response.CodeInvalidParameter.WithDetail(err))
 		return
 	}
-	if err := variables.DeleteGlobalVariable(r.Context(), req.Key); err != nil {
+	if err := Variables.DeleteGlobalVariable(r.Context(), req.Key); err != nil {
 		response.WriteJSON(r, response.CodeDefaultFailure.WithDetail(err.Error()))
 		return
 	}

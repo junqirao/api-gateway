@@ -8,16 +8,17 @@ import (
 	registry "github.com/junqirao/simple-registry"
 
 	"api-gateway/internal/components/config"
+	"api-gateway/internal/consts"
 )
 
 func Init(ctx context.Context) {
-	// variables
-	variables = &variableHandler{global: make(map[string]interface{})}
-	variables.build(ctx)
-	registry.Storages.SetEventHandler(storageNameVariable, variables.eventHandler)
+	// Variables
+	Variables = &variableHandler{global: make(map[string]interface{})}
+	Variables.build(ctx)
+	registry.Storages.SetEventHandler(consts.StorageNameVariable, Variables.eventHandler)
 	// program
 	buildCache(ctx)
-	registry.Storages.SetEventHandler(storageNameProgram, func(t registry.EventType, key string, value interface{}) {
+	registry.Storages.SetEventHandler(consts.StorageNameProgram, func(t registry.EventType, key string, value interface{}) {
 		g.Log().Infof(ctx, "program change event: type=%s key=%s", t, key)
 		parts := strings.Split(key, config.StorageSeparator)
 		if len(parts) < 2 {

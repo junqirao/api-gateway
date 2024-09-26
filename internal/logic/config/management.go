@@ -13,20 +13,20 @@ import (
 )
 
 type (
-	sConfig struct{}
+	sConfigManagement struct{}
 )
 
 func init() {
-	service.RegisterConfig(&sConfig{})
+	service.RegisterConfigManagement(&sConfigManagement{})
 }
 
-func (s sConfig) GetConfig(_ context.Context, input model.GetConfigInput) (model.GetConfigOutput, error) {
+func (s sConfigManagement) GetConfig(_ context.Context, input model.GetConfigInput) (model.GetConfigOutput, error) {
 	res := model.GetConfigOutput{}
 	res.Config, res.Default = config.GetServiceConfig(input.ServiceName)
 	return res, nil
 }
 
-func (s sConfig) UpdateConfig(ctx context.Context, input model.UpdateConfigInput) error {
+func (s sConfigManagement) UpdateConfig(ctx context.Context, input model.UpdateConfigInput) error {
 	var ptr = input.PtrByModule()
 	if ptr == nil {
 		return response.CodeInvalidParameter.WithDetail(fmt.Sprintf("invalid module: %s", input.Model))

@@ -12,12 +12,11 @@ import (
 	registry "github.com/junqirao/simple-registry"
 
 	"api-gateway/internal/components/config"
+	"api-gateway/internal/consts"
 )
 
 var (
-	storageNameProgram  = "program"
-	storageNameVariable = "program_variable"
-	variables           *variableHandler
+	Variables *variableHandler
 )
 
 type (
@@ -41,7 +40,7 @@ func (h *variableHandler) SetGlobalVariable(ctx context.Context, key string, val
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	err = registry.Storages.GetStorage(storageNameVariable).Set(ctx, key, value)
+	err = registry.Storages.GetStorage(consts.StorageNameVariable).Set(ctx, key, value)
 	if err == nil {
 		h.global[key] = gconv.String(value)
 	}
@@ -53,7 +52,7 @@ func (h *variableHandler) DeleteGlobalVariable(ctx context.Context, key string) 
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	err = registry.Storages.GetStorage(storageNameVariable).Delete(ctx, key)
+	err = registry.Storages.GetStorage(consts.StorageNameVariable).Delete(ctx, key)
 	if err == nil {
 		delete(h.global, key)
 	}
@@ -64,12 +63,12 @@ func (h *variableHandler) build(ctx context.Context) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	kvs, err := registry.Storages.GetStorage(storageNameVariable).Get(ctx)
+	kvs, err := registry.Storages.GetStorage(consts.StorageNameVariable).Get(ctx)
 	switch {
 	case err == nil:
 	case errors.Is(err, registry.ErrStorageNotFound):
 	default:
-		g.Log().Warningf(ctx, "build global variables failed: %v", err)
+		g.Log().Warningf(ctx, "build global Variables failed: %v", err)
 		return
 	}
 

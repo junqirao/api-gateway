@@ -11,23 +11,23 @@ import (
 )
 
 type (
-	IConfig interface {
-		GetConfig(ctx context.Context, input model.GetConfigInput) (model.GetConfigOutput, error)
+	IConfigManagement interface {
+		GetConfig(_ context.Context, input model.GetConfigInput) (model.GetConfigOutput, error)
 		UpdateConfig(ctx context.Context, input model.UpdateConfigInput) error
 	}
 )
 
 var (
-	localConfig IConfig
+	localConfigManagement IConfigManagement
 )
 
-func Config() IConfig {
-	if localConfig == nil {
-		panic("implement not found for interface IConfig, forgot register?")
+func ConfigManagement() IConfigManagement {
+	if localConfigManagement == nil {
+		panic("implement not found for interface IConfigManagement, forgot register?")
 	}
-	return localConfig
+	return localConfigManagement
 }
 
-func RegisterConfig(i IConfig) {
-	localConfig = i
+func RegisterConfigManagement(i IConfigManagement) {
+	localConfigManagement = i
 }
