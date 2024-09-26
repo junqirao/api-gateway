@@ -20,11 +20,11 @@ type (
 		// RetryCount retry count, default 1
 		RetryCount int `json:"retry_count"` // default 1
 		// DialTimeout, default 1s
-		DialTimeout string `json:"dial_timeout"`
+		DialTimeout string `json:"dial_timeout,omitempty"`
 		// TlsHandshakeTimeout tls handshake timeout, default 1s
-		TlsHandshakeTimeout string `json:"tls_handshake_timeout"`
+		TlsHandshakeTimeout string `json:"tls_handshake_timeout,omitempty"`
 		// Scheme http or https
-		Scheme string `json:"scheme"`
+		Scheme string `json:"scheme,omitempty"`
 	}
 	// LoadBalanceConfig load balance config
 	LoadBalanceConfig struct {

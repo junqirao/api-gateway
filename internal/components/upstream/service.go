@@ -113,17 +113,28 @@ func (s *Service) CountAvailableUpstream() int {
 }
 
 func (s *Service) configEventHandler(t config.EventType, module, key string, value interface{}) {
-	g.Log().Infof(context.Background(), "config event: type=%s, key=%s, value=%v", t, key, value)
+	ctx := context.Background()
+	g.Log().Infof(ctx, "config event: type=%s, key=%s, value=%v", t, key, value)
+	// update service config
+	defer s.updateConfig(ctx, module)
+	// update by module
 	if module == consts.ModuleNameLoadBalance {
 		// update lb instance
 		balancer.Update(s.RoutingKey)
 		return
 	}
-	// maybe has some way better than update all at once
-	for _, up := range s.ups {
+
+	wg := sync.WaitGroup{}
+	for _, upstream := range s.ups {
+		wg.Add(1)
 		// async update
-		go up.updateConfig(module)
+		up := upstream
+		go func() {
+			up.updateConfig(ctx, module)
+			wg.Done()
+		}()
 	}
+	wg.Wait()
 }
 
 func (s *Service) totalWeight() int64 {
@@ -132,4 +143,22 @@ func (s *Service) totalWeight() int64 {
 		w += up.Weight()
 	}
 	return w
+}
+
+func (s *Service) updateConfig(ctx context.Context, module string) {
+	// local caches in registry always updated before
+	// config event handler called
+	cfg, _ := config.GetServiceConfig(s.RoutingKey)
+	switch module {
+	case consts.ModuleNameBreaker:
+		s.Config.Breaker = cfg.Breaker
+	case consts.ModuleNameLoadBalance:
+		s.Config.LoadBalance = cfg.LoadBalance
+	case consts.ModuleNameRateLimiter:
+		s.Config.RateLimiter = cfg.RateLimiter
+	case consts.ModuleNameReverseProxy:
+		s.Config.ReverseProxy = cfg.ReverseProxy
+	}
+
+	g.Log().Infof(ctx, "service [%s] config updated: %s", s.RoutingKey, module)
 }

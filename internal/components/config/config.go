@@ -73,6 +73,8 @@ func GetServiceConfig(serviceName string) (*model.ServiceConfig, bool) {
 			err = kv.Value.Scan(&cfg.Breaker)
 		case consts.ModuleNameRateLimiter:
 			err = kv.Value.Scan(&cfg.RateLimiter)
+		case consts.ModuleNameReverseProxy:
+			err = kv.Value.Scan(&cfg.ReverseProxy)
 		}
 		if err != nil {
 			g.Log().Errorf(ctx, "failed to scan service %s config, using default config: %s", serviceName, err.Error())

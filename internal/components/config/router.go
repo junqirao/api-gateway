@@ -15,6 +15,7 @@ func Router(group *ghttp.RouterGroup) *ghttp.RouterGroup {
 			group.PUT(consts.ModuleNameLoadBalance, management.SetLoadBalanceConfig)
 			group.PUT(consts.ModuleNameBreaker, management.SetBreakerConfig)
 			group.PUT(consts.ModuleNameRateLimiter, management.SetRateLimiterConfig)
+			group.PUT(consts.ModuleNameReverseProxy, management.SetReverseProxyConfig)
 		})
 	})
 }

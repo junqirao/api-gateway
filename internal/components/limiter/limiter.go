@@ -12,11 +12,15 @@ type Limiter struct {
 }
 
 func NewLimiter(cfg model.RateLimiterConfig) *Limiter {
-	r := rate.Inf
-	if cfg.Rate > 0 {
-		r = rate.Limit(cfg.Rate)
-	}
 	return &Limiter{
-		Limiter: rate.NewLimiter(r, cfg.Peak),
+		Limiter: rate.NewLimiter(NewLimit(cfg.Rate), cfg.Peak),
 	}
+}
+
+func NewLimit(rateValue float64) rate.Limit {
+	r := rate.Inf
+	if rateValue > 0 {
+		r = rate.Limit(rateValue)
+	}
+	return r
 }

@@ -20,9 +20,10 @@ const (
 )
 
 const (
-	ModuleNameLoadBalance = "load_balance"
-	ModuleNameRateLimiter = "rate_limiter"
-	ModuleNameBreaker     = "breaker"
+	ModuleNameReverseProxy = "reverse_proxy"
+	ModuleNameLoadBalance  = "load_balance"
+	ModuleNameRateLimiter  = "rate_limiter"
+	ModuleNameBreaker      = "breaker"
 )
 
 const (
