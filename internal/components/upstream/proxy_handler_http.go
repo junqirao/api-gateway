@@ -8,14 +8,11 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
-	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/gogf/gf/v2/net/ghttp"
 
 	"api-gateway/internal/components/config"
-	"api-gateway/internal/components/utils"
 	"api-gateway/internal/consts"
 )
 
@@ -28,7 +25,6 @@ type (
 		prefixLength int
 		routingKey   string
 		dialer       *net.Dialer
-		bufPool      *sync.Pool
 
 		httputil.ReverseProxy
 	}
@@ -75,9 +71,6 @@ func newHTTPHandler(upstream *Upstream, cfg *config.ReverseProxyConfig) *proxy2h
 			Timeout:   dialTimeout,
 			KeepAlive: 60 * time.Second,
 		},
-		bufPool: &sync.Pool{New: func() any {
-			return utils.NewNopCloseBuf()
-		}},
 	}
 	handler.ReverseProxy = httputil.ReverseProxy{
 		Director: handler.director,
@@ -127,26 +120,8 @@ func (h *proxy2httpHandler) responseModifier(_ *http.Response) error {
 func (h *proxy2httpHandler) Do(ctx context.Context, req *ghttp.Request) (err error) {
 	// prepare
 	var (
-		cb       resultCallback = func(e error) { err = e }
-		retried                 = ctx.Value(consts.CtxKeyRetriedTimes).(*atomic.Int64).Load()
-		canRetry                = ctx.Value(consts.CtxKeyCanRetry).(*atomic.Bool).Load()
+		cb resultCallback = func(e error) { err = e }
 	)
-
-	// when canRetry, replace request body with
-	// nop closer at first place to avoid read
-	// closed body during retry.
-	if canRetry && retried == 0 {
-		buf := h.bufPool.Get().(*utils.NopCloseBuf)
-		// copy body to buffer
-		if _, err = buf.ReadFrom(req.Request.Body); err != nil {
-			return
-		}
-		// close original request body
-		if err = req.Request.Body.Close(); err != nil {
-			return
-		}
-		req.Request.Body = buf
-	}
 
 	// serve proxy
 
@@ -162,18 +137,5 @@ func (h *proxy2httpHandler) Do(ctx context.Context, req *ghttp.Request) (err err
 		req.Request.WithContext(context.WithValue(ctx, consts.CtxKeyResultCallback, cb)),
 	)
 
-	// when proxy success or reached retry limit
-	// put back buffer, only work if canRetry == true
-	if canRetry && err == nil || h.retryCount()-retried <= 0 {
-		if buf, ok := req.Request.Body.(*utils.NopCloseBuf); ok {
-			buf.Reset()
-			h.bufPool.Put(buf)
-		}
-	}
-
 	return
-}
-
-func (h *proxy2httpHandler) retryCount() int64 {
-	return int64(h.upstream.Parent.Config.ReverseProxy.RetryCount)
 }

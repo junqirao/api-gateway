@@ -81,9 +81,9 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 			filters = append(filters, notFilter(ups.Id))
 		}
 
-		for retryCount > 0 {
-			g.Log().Infof(ctx, "retry proxy, count: %d, reason: %v", retryCount, code)
+		for retryCount > 0 && code != nil {
 			retried.Add(1)
+			g.Log().Infof(ctx, "retry proxy, count: %d, reason: %v", retried.Load(), code)
 			ups, canRetry, code = s.doProxy(ctx, upstreams, input, filters, true)
 			retryCount--
 			// add filter
@@ -95,6 +95,7 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 
 	if code == nil {
 		// retry succeeded, response by upstream.Upstream
+		g.Log().Infof(ctx, "retry succeeded, count: %d", retried.Load())
 		return
 	}
 
@@ -118,11 +119,6 @@ func (s sProxy) doProxy(ctx context.Context,
 	if config.Gateway.Debug {
 		s.writeDebugHeader(input.Request, ups)
 	}
-
-	defer func() {
-		// cant retry when content length > consts.RetryMaxContentLength
-		canRetry = canRetry && input.Request.ContentLength > consts.RetryMaxContentLength
-	}()
 
 	// circuit breaker and rate limiter
 	cb, code := ups.Allow(ctx)
@@ -157,7 +153,6 @@ func (s sProxy) doProxy(ctx context.Context,
 	if e != nil {
 		// can retry
 		canRetry = true
-		g.Log().Warningf(ctx, "error caused during proxy: %s", e.Error())
 		// 502
 		if config.Gateway.Debug {
 			// response detail in debug mode
