@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/gogf/gf/contrib/rpc/grpcx/v2"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -12,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func ClientConnFromInstance(ins *registry.Instance) (cc *grpc.ClientConn, err error) {
+func ClientConnFromInstance(ins *registry.Instance, opt ...grpc.DialOption) (cc *grpc.ClientConn, err error) {
 	if ins == nil {
 		err = errors.New("empty instance")
 		return
@@ -23,7 +22,8 @@ func ClientConnFromInstance(ins *registry.Instance) (cc *grpc.ClientConn, err er
 		if len(part) > 1 {
 			target = fmt.Sprintf("%s:%s", ins.Host, part[1])
 		}
-		cc, err = grpcx.Client.NewGrpcClientConn(target, grpc.WithIdleTimeout(time.Second*2))
+
+		cc, err = grpcx.Client.NewGrpcClientConn(target, opt...)
 	} else {
 		err = fmt.Errorf("no grpc config at instance: %s", ins.Identity())
 	}

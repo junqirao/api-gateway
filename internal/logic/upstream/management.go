@@ -3,8 +3,11 @@ package upstream
 import (
 	"context"
 	"sort"
+	"time"
 
+	"github.com/gogf/gf/contrib/rpc/grpcx/v2"
 	registry "github.com/junqirao/simple-registry"
+	"google.golang.org/grpc"
 
 	ups "api-gateway/api/inner/upstream"
 	"api-gateway/internal/components/upstream"
@@ -36,19 +39,19 @@ func (s sUpstreamManagement) GetServiceState(ctx context.Context, serviceName st
 	if err != nil {
 		return
 	}
-
-	details := make(map[string][]*upstream.UpsState)
-	for _, instance := range svc.Instances() {
-		cc, err := utils.ClientConnFromInstance(instance)
-		if err != nil {
-			return nil, err
-		}
+	output = new(model.GetServiceStateOutput)
+	output.Detail = make(map[string][]*upstream.UpsState)
+	getServiceStatus := func(ctx context.Context,
+		cc *grpc.ClientConn,
+		instance *registry.Instance) (err error) {
+		ctx, cancelFunc := context.WithTimeout(ctx, time.Second*1)
+		defer cancelFunc()
 		states, err := ups.NewManagementClient(cc).GetServiceStates(ctx, &ups.GetServiceStatesReq{ServiceName: serviceName})
 		if err != nil {
-			return nil, err
+			return
 		}
 		for _, state := range states.States {
-			details[instance.HostName] = append(details[instance.HostName], &upstream.UpsState{
+			output.Detail[instance.HostName] = append(output.Detail[instance.HostName], &upstream.UpsState{
 				HostName:     state.GetHostname(),
 				InstanceId:   state.GetInstanceId(),
 				Healthy:      state.GetHealthy(),
@@ -58,9 +61,44 @@ func (s sUpstreamManagement) GetServiceState(ctx context.Context, serviceName st
 				BreakerState: state.GetBreakerState(),
 			})
 		}
+		return nil
 	}
 
-	return &model.GetServiceStateOutput{
-		Detail: details,
-	}, nil
+	var cc *grpc.ClientConn
+	for _, instance := range svc.Instances() {
+		cc, err = utils.ClientConnFromInstance(instance, grpcx.Client.DefaultGrpcDialOptions()...)
+		if err != nil {
+			return
+		}
+		if err = getServiceStatus(ctx, cc, instance); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (s sUpstreamManagement) getServiceStatus(ctx context.Context,
+	cc *grpc.ClientConn,
+	serviceName string,
+	details map[string][]*upstream.UpsState,
+	instance registry.Instance) (err error) {
+	ctx, cancelFunc := context.WithTimeout(ctx, time.Second*2)
+	defer cancelFunc()
+	states, err := ups.NewManagementClient(cc).GetServiceStates(ctx, &ups.GetServiceStatesReq{ServiceName: serviceName})
+	if err != nil {
+		return
+	}
+	for _, state := range states.States {
+		details[instance.HostName] = append(details[instance.HostName], &upstream.UpsState{
+			HostName:     state.GetHostname(),
+			InstanceId:   state.GetInstanceId(),
+			Healthy:      state.GetHealthy(),
+			Weight:       state.GetWeight(),
+			WeightRatio:  float64(state.GetWeightRatio()),
+			Load:         state.GetLoad(),
+			BreakerState: state.GetBreakerState(),
+		})
+	}
+	return nil
 }

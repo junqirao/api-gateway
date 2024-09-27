@@ -28,7 +28,7 @@ func WriteData(r *ghttp.Request, ec *Code, data ...interface{}) {
 	r.Response.WriteHeader(ec.status)
 	r.Response.WriteJson(JSON{
 		Code:    ec.Code(),
-		Message: ec.Error(),
+		Message: ec.Message(),
 		Data:    dat,
 	})
 }

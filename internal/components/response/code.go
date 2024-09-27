@@ -34,11 +34,11 @@ type (
 )
 
 func DefaultSuccess() *Code {
-	return CodeDefaultSuccess
+	return CodeDefaultSuccess.Clone()
 }
 
 func DefaultFailure() *Code {
-	return CodeDefaultFailure
+	return CodeDefaultFailure.Clone()
 }
 
 func NewCode(bizCode int, message string, httpStatus int, detail ...interface{}) *Code {
@@ -69,7 +69,9 @@ func CodeFromError(err error) *Code {
 	}
 	var unwrap iUnwrap
 	if errors.As(err, &unwrap) {
-		return CodeFromError(unwrap.Unwrap())
+		if uw := unwrap.Unwrap(); uw != nil {
+			return CodeFromError(uw)
+		}
 	}
 	return DefaultFailure().WithDetail(err.Error())
 }
@@ -79,14 +81,6 @@ func (c *Code) Code() int {
 }
 
 func (c *Code) Message() string {
-	return c.message
-}
-
-func (c *Code) Detail() interface{} {
-	return c.detail
-}
-
-func (c *Code) Error() string {
 	msg := c.message
 	if msg == "" {
 		msg = http.StatusText(c.code)
@@ -100,6 +94,14 @@ func (c *Code) Error() string {
 		}
 	}
 	return msg
+}
+
+func (c *Code) Detail() interface{} {
+	return c.detail
+}
+
+func (c *Code) Error() string {
+	return c.Message()
 }
 
 func (c *Code) Status() int {
