@@ -2,6 +2,7 @@ package upstream
 
 import (
 	"context"
+	"net/http/httputil"
 	"sync"
 	"sync/atomic"
 
@@ -12,17 +13,22 @@ import (
 	"api-gateway/internal/consts"
 )
 
-func NewHandler(_ context.Context, ups *Upstream, cfg config.ReverseProxyConfig) (handler ReverseProxyHandler) {
-	return newRetryableHandler(newHTTPHandler(ups, &cfg), ups)
-}
-
 type (
 	retryableProxyHandler struct {
 		upstream *Upstream
 		bufPool  *sync.Pool
 		next     ReverseProxyHandler
 	}
+	bufferPool struct {
+		p *sync.Pool
+	}
 )
+
+func NewHandler(_ context.Context, ups *Upstream, cfg config.ReverseProxyConfig) (handler ReverseProxyHandler) {
+	return newRetryableHandler(
+		newHTTPHandler(ups.Instance.Host, ups.Instance.Port, ups.ServiceName, &cfg),
+		ups)
+}
 
 func newRetryableHandler(h ReverseProxyHandler, upstream *Upstream) ReverseProxyHandler {
 	return &retryableProxyHandler{
@@ -72,4 +78,22 @@ func (h *retryableProxyHandler) Do(ctx context.Context, req *ghttp.Request) (err
 
 func (h *retryableProxyHandler) retryCount() int64 {
 	return int64(h.upstream.Parent.Config.ReverseProxy.RetryCount)
+}
+
+func newBufferPool() httputil.BufferPool {
+	return &bufferPool{
+		p: &sync.Pool{
+			New: func() interface{} {
+				return make([]byte, 32*1024)
+			},
+		},
+	}
+}
+
+func (b *bufferPool) Get() []byte {
+	return b.p.Get().([]byte)
+}
+
+func (b *bufferPool) Put(bytes []byte) {
+	b.p.Put(bytes)
 }

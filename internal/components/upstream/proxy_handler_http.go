@@ -18,7 +18,6 @@ import (
 
 type (
 	proxy2httpHandler struct {
-		upstream     *Upstream
 		cfg          *config.ReverseProxyConfig
 		scheme       string
 		host         string
@@ -31,9 +30,8 @@ type (
 	resultCallback func(err error)
 )
 
-func newHTTPHandler(upstream *Upstream, cfg *config.ReverseProxyConfig) *proxy2httpHandler {
+func newHTTPHandler(host string, port int, serviceName string, cfg *config.ReverseProxyConfig) *proxy2httpHandler {
 	var (
-		ins                 = &upstream.Instance
 		scheme              = cfg.Scheme
 		dialTimeout         = time.Second * 1
 		tlsHandshakeTimeout = time.Second * 1
@@ -55,18 +53,17 @@ func newHTTPHandler(upstream *Upstream, cfg *config.ReverseProxyConfig) *proxy2h
 		}
 	}
 
-	targetHost := fmt.Sprintf("%s://%s", scheme, ins.Host)
-	if ins.Port > 0 {
-		targetHost = targetHost + fmt.Sprintf(":%d", ins.Port)
+	targetHost := fmt.Sprintf("%s://%s", scheme, host)
+	if port > 0 {
+		targetHost = targetHost + fmt.Sprintf(":%d", port)
 	}
 	target, _ := url.Parse(targetHost)
 	handler := &proxy2httpHandler{
-		upstream:     upstream,
 		cfg:          cfg,
 		scheme:       target.Scheme,
 		host:         target.Host,
-		prefixLength: len(ins.ServiceName),
-		routingKey:   ins.ServiceName,
+		prefixLength: len(serviceName),
+		routingKey:   serviceName,
 		dialer: &net.Dialer{
 			Timeout:   dialTimeout,
 			KeepAlive: 60 * time.Second,
@@ -85,6 +82,7 @@ func newHTTPHandler(upstream *Upstream, cfg *config.ReverseProxyConfig) *proxy2h
 		},
 		ErrorHandler:   handler.errorHandler,
 		ModifyResponse: handler.responseModifier,
+		BufferPool:     newBufferPool(),
 	}
 	return handler
 }
