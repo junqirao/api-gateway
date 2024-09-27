@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package upstream;
+option go_package = "/api/inner/upstream;upstream";
+
+
+message State {
+  string hostname = 1;
+  string instance_id = 2;
+  bool healthy = 3;
+  int64 weight = 4;
+  float weight_ratio = 5;
+  int64 load = 6;
+  string breaker_state = 7;
+}
+
+message GetServiceStatesReq {
+  string service_name = 1;
+}
+
+message GetServiceStatesResp {
+  repeated State states = 1;
+}
+
+service Management {
+  rpc GetServiceStates(GetServiceStatesReq) returns (GetServiceStatesResp);
+}
+

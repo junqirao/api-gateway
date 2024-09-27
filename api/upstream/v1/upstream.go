@@ -18,7 +18,4 @@ type GetServiceStateReq struct {
 	ServiceName string `json:"service_name"`
 }
 
-type GetServiceStateRes struct {
-	Upstreams      int                  `json:"upstreams"`
-	UpstreamStates []*upstream.UpsState `json:"upstream_states"`
-}
+type GetServiceStateRes map[string][]*upstream.UpsState

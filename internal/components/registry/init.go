@@ -16,12 +16,19 @@ func Init(ctx context.Context) {
 		v   = g.Cfg().MustGet(ctx, "registry")
 	)
 
+	// parse config
 	if err := v.Scan(&cfg); err != nil {
 		g.Log().Fatal(ctx, err)
 	}
 	if err := v.Scan(&ins); err != nil {
 		g.Log().Fatal(ctx, err)
 	}
+
+	// inject grpc config
+	ins.WithMetaData(map[string]interface{}{
+		"grpc": g.Cfg().MustGet(ctx, "grpc").Map(),
+	})
+	// init registry and register
 	if err := registry.Init(ctx, cfg, ins); err != nil {
 		g.Log().Fatal(ctx, err)
 	}

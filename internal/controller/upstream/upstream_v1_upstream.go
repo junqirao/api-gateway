@@ -14,7 +14,11 @@ func (c *ControllerV1) GetServiceNames(ctx context.Context, _ *v1.GetServiceName
 }
 func (c *ControllerV1) GetServiceState(ctx context.Context, req *v1.GetServiceStateReq) (res *v1.GetServiceStateRes, err error) {
 	res = new(v1.GetServiceStateRes)
-	res.UpstreamStates = service.UpstreamManagement().GetServiceState(ctx, req.ServiceName)
-	res.Upstreams = len(res.UpstreamStates)
+	output, err := service.UpstreamManagement().GetServiceState(ctx, req.ServiceName)
+	if err != nil {
+		return
+	}
+	v := v1.GetServiceStateRes(output.Detail)
+	res = &v
 	return
 }
