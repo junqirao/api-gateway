@@ -51,28 +51,28 @@ func (h *retryableProxyHandler) Do(ctx context.Context, req *ghttp.Request) (err
 	// closed body during retry.
 	if canRetry && retried == 0 {
 		buf := h.bufPool.Get().(*utils.NopCloseBuf)
-		// copy body to buffer
-		if _, err = buf.ReadFrom(req.Request.Body); err != nil {
-			return
-		}
-		// close original request body
-		if err = req.Request.Body.Close(); err != nil {
-			return
-		}
+		// original request body will be closed when read EOF
+		buf.SetOrigin(req.Request.Body)
 		req.Request.Body = buf
 	}
 
-	err = h.next.Do(ctx, req)
-
-	// when proxy success or reached retry limit
-	// put back buffer, only work if canRetry == true
-	if canRetry && err == nil || h.retryCount()-retried <= 0 {
+	recovery := func() {
+		retryCount := h.retryCount()
 		if buf, ok := req.Request.Body.(*utils.NopCloseBuf); ok {
-			buf.Reset()
-			h.bufPool.Put(buf)
+			// when proxy success or reached retry limit
+			// put back buffer, only work if canRetry == true
+			if canRetry && err == nil || retryCount-retried <= 0 {
+				buf.Reset()
+				h.bufPool.Put(buf)
+			} else {
+				// reset buffer index for retry or mirror request
+				buf.ResetIndex()
+			}
 		}
 	}
 
+	err = h.next.Do(ctx, req)
+	recovery()
 	return
 }
 
