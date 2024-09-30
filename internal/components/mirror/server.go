@@ -22,17 +22,19 @@ var (
 	chBufferSize            = g.Cfg().MustGet(gctx.GetInitCtx(), "mirror.server.ch_buffer_size", 100).Int()
 	workerCount             = g.Cfg().MustGet(gctx.GetInitCtx(), "mirror.server.worker_count", 10).Int()
 	clientHeartbeatInterval = g.Cfg().MustGet(gctx.GetInitCtx(), "mirror.server.heartbeat_interval", 30).Int64()
+	whiteList               = g.Cfg().MustGet(gctx.GetInitCtx(), "mirror.server.white_list", "").Strings()
 )
 
 type (
 	server struct {
-		mu      sync.RWMutex
-		clients map[string]*client // key: client_id, value: proxy.ReverseProxyHandler
-		new     func(ins *registry.Instance) (proxy.ReverseProxyHandler, error)
-		ch      chan *request
-		ctx     context.Context
-		cancel  context.CancelFunc
-		wg      sync.WaitGroup
+		mu        sync.RWMutex
+		clients   map[string]*client // key: client_id, value: proxy.ReverseProxyHandler
+		new       func(ins *registry.Instance) (proxy.ReverseProxyHandler, error)
+		ch        chan *request
+		ctx       context.Context
+		cancel    context.CancelFunc
+		wg        sync.WaitGroup
+		whiteList map[string]struct{}
 	}
 	request struct {
 		ctx   context.Context
@@ -48,6 +50,15 @@ func newServer(ctx context.Context, newFunc func(ins *registry.Instance) (proxy.
 		new:     newFunc,
 		ch:      make(chan *request, chBufferSize),
 	}
+
+	s.whiteList = make(map[string]struct{})
+	if len(whiteList) > 0 {
+		for _, v := range whiteList {
+			s.whiteList[v] = struct{}{}
+		}
+		g.Log().Infof(ctx, "mirror server white list: %v", whiteList)
+	}
+
 	s.buildClients(ctx)
 	g.Log().Infof(ctx, "mirror server build clients: %d", len(s.clients))
 	s.ctx, s.cancel = context.WithCancel(ctx)
@@ -188,4 +199,12 @@ func Register(ctx context.Context, info ClientInfo) (ttl int64, err error) {
 
 func UnRegister(ctx context.Context, ins *registry.Instance) (err error) {
 	return registry.Storages.GetStorage(consts.StorageNameMirror).Delete(ctx, ins.Id)
+}
+
+func Allow(ip string) bool {
+	if len(srv.whiteList) == 0 {
+		return true
+	}
+	_, ok := srv.whiteList[ip]
+	return ok
 }

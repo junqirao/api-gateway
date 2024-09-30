@@ -6,12 +6,12 @@ import (
 	"github.com/gogf/gf/v2/util/gconv"
 	registry "github.com/junqirao/simple-registry"
 
+	"github.com/gogf/gf/contrib/rpc/grpcx/v2"
+
 	v1 "api-gateway/api/mirror/v1"
 	"api-gateway/internal/components/authentication"
 	"api-gateway/internal/components/mirror"
 	"api-gateway/internal/components/response"
-
-	"github.com/gogf/gf/contrib/rpc/grpcx/v2"
 )
 
 type Controller struct {
@@ -23,6 +23,11 @@ func Register(s *grpcx.GrpcServer) {
 }
 
 func (c *Controller) Register(ctx context.Context, in *v1.RegisterReq) (res *v1.RegisterRes, err error) {
+	addr := in.GetInstance().GetHost()
+	if !mirror.Allow(addr) {
+		err = response.CodePermissionDeny.WithDetail(addr)
+		return
+	}
 	ins := in.GetInstance()
 	if !authentication.L.Compare(ins.GetId(), in.GetAuthentication()) {
 		err = response.CodePermissionDeny
@@ -41,6 +46,11 @@ func (c *Controller) Register(ctx context.Context, in *v1.RegisterReq) (res *v1.
 }
 
 func (c *Controller) UnRegister(ctx context.Context, in *v1.UnRegisterReq) (res *v1.UnRegisterRes, err error) {
+	addr := in.GetInstance().GetHost()
+	if !mirror.Allow(addr) {
+		err = response.CodePermissionDeny.WithDetail(addr)
+		return
+	}
 	if !authentication.L.Compare(in.GetInstance().GetId(), in.GetAuthentication()) {
 		err = response.CodePermissionDeny
 		return

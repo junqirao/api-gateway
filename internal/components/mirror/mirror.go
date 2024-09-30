@@ -23,13 +23,19 @@ mirror:
     worker_count: 10
     # client heartbeat interval, default 30
     heartbeat_interval: 30
+    # access white list, accept domain name or ip address
+    white_list:
+      - "127.0.0.1"
+      - "172.18.28.101"
   client:
     server_address: "127.0.0.1:8001"
+    secret: "P@sswOrd"
     # service_name going to replicate to,
     # if not set will replicate to all
     filter:
       - "service_name_1"
       - "service_name_2"
+
 */
 
 const (
