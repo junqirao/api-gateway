@@ -50,6 +50,7 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 		retried   = &atomic.Int64{}
 		retryable = &atomic.Bool{}
 	)
+
 	// retry conditions
 	retryable.Store(
 		// content-type = application/json
@@ -58,8 +59,10 @@ func (s sProxy) Proxy(ctx context.Context, input *model.ReverseProxyInput) {
 			input.Request.ContentLength > 0 &&
 			input.Request.ContentLength < consts.RetryMaxContentLength)
 
+	// context value
 	ctx = context.WithValue(ctx, consts.CtxKeyRetriedTimes, retried)
 	ctx = context.WithValue(ctx, consts.CtxKeyCanRetry, retryable)
+	ctx = context.WithValue(ctx, consts.CtxKeyRoutingKey, input.RoutingKey)
 
 	// proxy with retry
 	retryCount := upstreams.Config.ReverseProxy.RetryCount

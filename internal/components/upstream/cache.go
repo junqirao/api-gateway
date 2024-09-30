@@ -53,7 +53,7 @@ func (h *cacheHandler) registerEvent() {
 			g.Log().Infof(ctx, "service[%s] delete upstream instance=%s", instance.ServiceName, instance.Identity())
 			srv, ok := h.GetService(instance.ServiceName)
 			if !ok {
-				g.Log().Warningf(ctx, "upstream Cache not found service=%s", instance.ServiceName)
+				g.Log().Warningf(ctx, "upstream cache not found service=%s", instance.ServiceName)
 				return
 			}
 			srv.Delete(instance.Identity())
@@ -67,7 +67,7 @@ func (h *cacheHandler) registerEvent() {
 func (h *cacheHandler) build(ctx context.Context) {
 	services, err := registry.Registry.GetServices(ctx)
 	if err != nil {
-		g.Log().Errorf(ctx, "upstream Cache failed to get services: %v", err)
+		g.Log().Errorf(ctx, "upstream cache failed to get services: %v", err)
 		return
 	}
 	current := make(map[string]struct{})
@@ -93,7 +93,7 @@ func (h *cacheHandler) build(ctx context.Context) {
 		g.Log().Infof(ctx, "remove service=%s", k)
 		h.m.Delete(k)
 	}
-	g.Log().Infof(ctx, "upstream Cache build done.")
+	g.Log().Infof(ctx, "upstream cache build done.")
 }
 
 func (h *cacheHandler) GetService(routingKey string) (srv *Service, ok bool) {
@@ -109,7 +109,7 @@ func (h *cacheHandler) getOrCreateService(ctx context.Context, routingKey string
 	srv, ok = h.GetService(routingKey)
 	if !ok {
 		cfg, ok := config.GetServiceConfig(routingKey)
-		g.Log().Infof(ctx, "upstream Cache create service=%s, defaultServiceConfig=%v", routingKey, !ok)
+		g.Log().Infof(ctx, "upstream cache create service=%s, defaultServiceConfig=%v", routingKey, !ok)
 		srv = NewService(routingKey, *cfg)
 		h.setService(routingKey, srv)
 	}

@@ -6,9 +6,11 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 
 	"api-gateway/internal/components/config"
+	"api-gateway/internal/components/mirror"
 	"api-gateway/internal/components/utils"
 	"api-gateway/internal/consts"
 )
@@ -64,6 +66,7 @@ func (h *retryableProxyHandler) Do(ctx context.Context, req *ghttp.Request) (err
 			if canRetry && err == nil || retryCount-retried <= 0 {
 				buf.Reset()
 				h.bufPool.Put(buf)
+				g.Log().Debug(ctx, "request resource released.")
 			} else {
 				// reset buffer index for retry or mirror request
 				buf.ResetIndex()
@@ -72,6 +75,14 @@ func (h *retryableProxyHandler) Do(ctx context.Context, req *ghttp.Request) (err
 	}
 
 	err = h.next.Do(ctx, req)
+
+	// replicate request if mirror server enabled,
+	// pass recovery to mirror server, it will be
+	// executed when replicate done.
+	if mirror.Push(ctx, req, recovery) {
+		return
+	}
+
 	recovery()
 	return
 }

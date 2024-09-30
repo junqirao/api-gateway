@@ -16,6 +16,7 @@ import (
 	"api-gateway/internal/components/breaker"
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/limiter"
+	"api-gateway/internal/components/proxy"
 	"api-gateway/internal/components/response"
 )
 
@@ -46,11 +47,8 @@ type (
 		BreakerState string  `json:"breaker_state"`
 	}
 
-	// ReverseProxyHandler interface of reverse proxy
-	ReverseProxyHandler interface {
-		// Do reverse proxy
-		Do(ctx context.Context, req *ghttp.Request) (err error)
-	}
+	// ReverseProxyHandler alias of proxy.ReverseProxyHandler
+	ReverseProxyHandler = proxy.ReverseProxyHandler
 )
 
 func NewUpstream(ctx context.Context, instance *registry.Instance, cfg config.ServiceConfig) *Upstream {

@@ -7,7 +7,7 @@ require (
 	github.com/gogf/gf/contrib/rpc/grpcx/v2 v2.7.4
 	github.com/gogf/gf/v2 v2.7.4
 	github.com/google/uuid v1.6.0
-	github.com/junqirao/simple-registry v0.0.3-0.20240926153058-1a8f27f00a42
+	github.com/junqirao/simple-registry v0.0.4
 	github.com/prometheus/client_golang v1.20.4
 	github.com/sony/gobreaker v1.0.0
 	golang.org/x/time v0.6.0

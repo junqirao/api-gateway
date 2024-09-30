@@ -5,6 +5,7 @@ const (
 	CtxKeyResultCallback = "___result_callback"
 	CtxKeyRetriedTimes   = "___retried_times"
 	CtxKeyCanRetry       = "___can_retry"
+	CtxKeyRoutingKey     = "___routing_key"
 )
 
 // header key define
@@ -15,6 +16,7 @@ const (
 	HeaderKeyServerAddr                    = "X-Srv-Address"
 	HeaderKeyServiceUpstreamCount          = "X-Svc-Upstream-Count"
 	HeaderKeyServiceAvailableUpstreamCount = "X-Svc-Available-Upstream-Count"
+	HeaderKeyReplicateFrom                 = "X-Replicate-From"
 )
 
 const (
@@ -40,4 +42,5 @@ const (
 	StorageNameServiceConfig = "service_config"
 	StorageNameProgram       = "program"
 	StorageNameVariable      = "program_variable"
+	StorageNameMirror        = "mirror"
 )

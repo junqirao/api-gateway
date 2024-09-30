@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package mirror;
+option go_package = "/api/mirror/v1;v1";
+
+message Instance {
+  string id = 1;
+  string host = 2;
+  string host_name = 3;
+  int32 port = 4;
+  string service_name = 5;
+  string meta = 6;
+}
+
+message RegisterReq {
+  Instance instance = 1;
+  repeated string filter = 2;
+}
+
+message RegisterRes {
+  bool success = 1;
+  int32 ttl = 2;
+}
+
+message UnRegisterReq {
+  Instance instance = 1;
+}
+
+message UnRegisterRes {
+  bool success = 1;
+}
+
+service Mirror {
+  rpc Register(RegisterReq) returns (RegisterRes) {};
+  rpc UnRegister(UnRegisterReq) returns (UnRegisterRes) {};
+}

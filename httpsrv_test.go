@@ -65,7 +65,7 @@ func startEchoServer(name string, port, weight int) {
 				}
 				fmt.Printf("copy bytes: %d\n", n)
 			}
-			fmt.Printf("echo: %d\n", st)
+			fmt.Printf("echo: %d, header:%+v\n", st, r.Header)
 			response.WriteJSON(r, response.NewCode(st, id, st))
 		})
 		group.ALL("/registry", func(r *ghttp.Request) {

@@ -49,6 +49,12 @@ github.com/junqirao/simple-registry v0.0.2 h1:KeS1hfCXrFv1dBfjX6M3PR2SsSM6YAOUHE
 github.com/junqirao/simple-registry v0.0.2/go.mod h1:pwRglZimZXRfhYbiI2Stz65sj9hRe1Pr/0nzJMgEB9w=
 github.com/junqirao/simple-registry v0.0.3-0.20240926153058-1a8f27f00a42 h1:/4GFaqCbsCYdbeUSC5oF6eEOfS4ss3cVE257EL0hj7c=
 github.com/junqirao/simple-registry v0.0.3-0.20240926153058-1a8f27f00a42/go.mod h1:pwRglZimZXRfhYbiI2Stz65sj9hRe1Pr/0nzJMgEB9w=
+github.com/junqirao/simple-registry v0.0.3-0.20240929101340-2e41fad6829a h1:WQa/hjw8tzt45/Yq9aCD6Q+V74bl9k2K1/uq9SEkpMQ=
+github.com/junqirao/simple-registry v0.0.3-0.20240929101340-2e41fad6829a/go.mod h1:pwRglZimZXRfhYbiI2Stz65sj9hRe1Pr/0nzJMgEB9w=
+github.com/junqirao/simple-registry v0.0.3 h1:b1uipjUH9ZPgZ2b05A4APNElmjdawlRxDbQVo5AJ79k=
+github.com/junqirao/simple-registry v0.0.3/go.mod h1:pwRglZimZXRfhYbiI2Stz65sj9hRe1Pr/0nzJMgEB9w=
+github.com/junqirao/simple-registry v0.0.4 h1:r669KDVymRPyQ07MWvGnnC5NNE7a1v54kc3IREWGyC8=
+github.com/junqirao/simple-registry v0.0.4/go.mod h1:pwRglZimZXRfhYbiI2Stz65sj9hRe1Pr/0nzJMgEB9w=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.17.9 h1:6KIumPrER1LHsvBVuDa0r5xaG0Es51mhhB9BQB2qeMA=
