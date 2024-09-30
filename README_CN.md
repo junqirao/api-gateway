@@ -31,6 +31,12 @@
             * [额外指标](#额外指标)
                 * [释义](#释义)
                 * [示例](#示例-1)
+        * [流量复制](#流量复制)
+            * [如何工作](#如何工作)
+            * [配置](#配置)
+                * [通用](#通用)
+                * [服务端](#服务端)
+                * [客户端](#客户端)
     * [配置文件示例](#配置文件示例)
     * [依赖项目](#依赖项目)
 
@@ -53,6 +59,7 @@
 * 请求重试
 * 配置热更新
 * Prometheus指标接入
+* 流量复制 (镜像)
 
 ### 支持配置热更
 
@@ -277,6 +284,38 @@ gateway_http_status_total{status="200"} 5234
 gateway_http_status_total{status="502"} 2
 ```
 
+### 流量复制
+
+#### 如何工作
+
+> 通过服务端代理注册客户端到注册中心并创建对应的反向代理处理器，在流量代理响应结束后异步推送到客户端注册的目标主机。
+
+#### 配置
+
+##### 通用
+
+| 字段          | 描述   | 值                                      | 默认 |
+|-------------|------|----------------------------------------|----|
+| mirror.mode | 工作模式 | ```"server"``` ```"client"``` ```""``` | "" |
+
+##### 服务端
+
+| 字段                               | 描述                                  | 值      | 默认  |
+|----------------------------------|-------------------------------------|--------|-----|
+| mirror.server.ch_buffer_size     | 推送缓冲区大小，如果设置为 0 会阻塞直到推送完成，影响代理资源回收。 | int    | 100 |
+| mirror.server.worker_count       | 代理工作线程数，当请求耗时高时提高工作线程数量会改善阻塞时长。     | int    | 10  |
+| mirror.server.heartbeat_interval | 客户端心跳间隔秒数                           | int    | 30  |
+| mirror.server.white_list         | 访问白名单，允许访问的域名或 IP 地址。为空时允许所有。       | array  | []  |
+| auth.secret                      | 访问密钥                                | string | ""  |
+
+##### 客户端
+
+| 字段                           | 描述                       | 值      | 默认 |
+|------------------------------|--------------------------|--------|----|
+| mirror.client.server_address | 服务端地址，如 "some.host:8001" | string | "" |
+| mirror.client.secret         | 访问密钥，与服务端 auth.secret 相同 | string | "" |
+| mirror.client.filter         | 服务过滤，如果不设置所有请求都会被复制      | array  | [] |
+
 ## 配置文件示例
 
 ```yaml
@@ -308,6 +347,29 @@ gateway:
     # md5("password")->"5f4dcc3b5aa765d61d8327deb882cf99"->md5("5f4dcc3b5aa765d61d8327deb882cf99") = "696d29e0940a4957748fe3fc9efd22a3"
     # 如果这个字段不为空，在调用管理API时，需要在请求头""Authorization"中添加明文密码一次哈希的值
     password: "696d29e0940a4957748fe3fc9efd22a3"
+
+
+# 流量复制配置
+mirror:
+  # 工作模式 "","client","server"
+  mode: "server"
+  server:
+    # 缓冲区大小, 默认 100
+    ch_buffer_size: 100
+    # 异步处理worker数量, 默认 10
+    worker_count: 10
+    # 客户端心跳间隔（秒）, 默认 30
+    heartbeat_interval: 30
+    # 白名单，允许访问的域名或ip
+    white_list:
+      - "127.0.0.1"
+  client:
+    server_address: "127.0.0.1:8001"
+    secret: "P@sswOrd"
+    # 需要复制流量的服务，不设置时复制全部
+    filter:
+      - "service_name_1"
+      - "service_name_2"
 
 # 注册中心配置
 registry:

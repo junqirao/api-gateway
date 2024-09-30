@@ -31,6 +31,12 @@ configuration hot updates supported programmable api gateway
             * [Extra](#extra)
                 * [Fields](#fields)
                 * [Example](#example-1)
+        * [Request Replicate](#request-replicate)
+            * [How it works](#how-it-works)
+            * [Config](#config-1)
+                * [Common](#common)
+                * [Server](#server)
+                * [Client](#client)
     * [Config Example](#config-example)
     * [Dependencies](#dependencies)
 
@@ -53,6 +59,7 @@ configuration hot updates supported programmable api gateway
 * Retry
 * Configuration Hot Updates
 * Metrics for prometheus
+* Request Replicate (Mirror)
 
 ### Hot Updates Supported
 
@@ -279,6 +286,41 @@ gateway_http_status_total{status="200"} 5234
 gateway_http_status_total{status="502"} 2
 ```
 
+### Request Replicate
+
+#### How it works
+
+> Register the client to the registry through the server-side proxy
+> then server create a reverse proxy handler based on it. after the
+> request proxy response is completed, the request will be replicated
+> and push to the target server asynchronously.
+
+#### Config
+
+##### Common
+
+| Field       | Description  | Value                                  | Default |
+|-------------|--------------|----------------------------------------|---------|
+| mirror.mode | running mode | ```"server"``` ```"client"``` ```""``` | ""      |
+
+##### Server
+
+| Field                            | Description                                                                                       | Value  | Default |
+|----------------------------------|---------------------------------------------------------------------------------------------------|--------|---------|
+| mirror.server.ch_buffer_size     | channel buffer size, if set to 0 push operation<br/> will be blocked till it is done.             | int    | 100     |
+| mirror.server.worker_count       | reverse proxy worker count. when request costs <br/>time more worker may improve block situation. | int    | 10      |
+| mirror.server.heartbeat_interval | client heartbeat interval seconds.                                                                | int    | 30      |
+| mirror.server.white_list         | access white list, accept domain name or ip address.<br/> allow all when value not set.           | array  | []      |
+| auth.secret                      | access secret.                                                                                    | string | ""      |
+
+##### Client
+
+| Field                        | Description                                               | Value  | Default |
+|------------------------------|-----------------------------------------------------------|--------|---------|
+| mirror.client.server_address | server address. e.g. "some.host:8001"                     | string | ""      |
+| mirror.client.secret         | same as server side auth.secret                           | string | ""      |
+| mirror.client.filter         | service filter, if not set all request will be replicated | array  | []      |
+
 ## Config Example
 
 ```yaml
@@ -310,6 +352,29 @@ gateway:
     # md5("password")->"5f4dcc3b5aa765d61d8327deb882cf99"->md5("5f4dcc3b5aa765d61d8327deb882cf99") = "696d29e0940a4957748fe3fc9efd22a3"
     # if password not empty, calling management api, "Authorization" header is required, value is md5("password")
     password: "696d29e0940a4957748fe3fc9efd22a3"
+
+# request mirror config
+mirror:
+  # working mode "","client","server"
+  mode: "server"
+  server:
+    # channel buffer size, default 100
+    ch_buffer_size: 100
+    # async worker count, default 10
+    worker_count: 10
+    # client heartbeat interval, default 30
+    heartbeat_interval: 30
+    # access white list, accept domain name or ip address
+    white_list:
+      - "127.0.0.1"
+  client:
+    server_address: "127.0.0.1:8001"
+    secret: "P@sswOrd"
+    # service_name going to replicate to,
+    # if not set will replicate to all
+    filter:
+      - "service_name_1"
+      - "service_name_2"
 
 # registry config
 registry:
