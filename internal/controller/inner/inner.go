@@ -6,6 +6,8 @@ import (
 	"github.com/gogf/gf/contrib/rpc/grpcx/v2"
 
 	"api-gateway/api/inner/upstream"
+	"api-gateway/internal/components/authentication"
+	"api-gateway/internal/components/response"
 	ups "api-gateway/internal/components/upstream"
 )
 
@@ -18,6 +20,10 @@ func Register(s *grpcx.GrpcServer) {
 }
 
 func (*Controller) GetServiceStates(_ context.Context, req *upstream.GetServiceStatesReq) (res *upstream.GetServiceStatesResp, err error) {
+	if !authentication.L.Compare(req.GetInstanceId(), req.GetAuthentication()) {
+		err = response.CodePermissionDeny
+		return
+	}
 	srv, ok := ups.Cache.GetService(req.ServiceName)
 	if !ok {
 		return

@@ -13,8 +13,9 @@ message Instance {
 }
 
 message RegisterReq {
-  Instance instance = 1;
-  repeated string filter = 2;
+  string authentication = 1;
+  Instance instance = 2;
+  repeated string filter = 3;
 }
 
 message RegisterRes {
@@ -23,7 +24,8 @@ message RegisterRes {
 }
 
 message UnRegisterReq {
-  Instance instance = 1;
+  string authentication = 1;
+  Instance instance = 2;
 }
 
 message UnRegisterRes {

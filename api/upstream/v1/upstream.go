@@ -2,8 +2,6 @@ package v1
 
 import (
 	"github.com/gogf/gf/v2/frame/g"
-
-	"api-gateway/internal/components/upstream"
 )
 
 type GetServiceNamesReq struct {
@@ -18,4 +16,4 @@ type GetServiceStateReq struct {
 	ServiceName string `json:"service_name"`
 }
 
-type GetServiceStateRes map[string][]*upstream.UpsState
+type GetServiceStateRes map[string][]any

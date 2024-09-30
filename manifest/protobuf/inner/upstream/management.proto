@@ -15,7 +15,9 @@ message State {
 }
 
 message GetServiceStatesReq {
-  string service_name = 1;
+  string authentication = 1;
+  string instance_id = 2;
+  string service_name = 3;
 }
 
 message GetServiceStatesResp {

@@ -13,6 +13,7 @@ import (
 	registry "github.com/junqirao/simple-registry"
 
 	mir "api-gateway/api/mirror/v1"
+	"api-gateway/internal/components/authentication"
 	"api-gateway/internal/components/proxy"
 	r "api-gateway/internal/components/registry"
 	"api-gateway/internal/consts"
@@ -34,6 +35,7 @@ type (
 		ctx            context.Context
 		cancel         context.CancelFunc
 		acceptInterval int64
+		auth           *authentication.Local
 		// client info
 		ClientInfo
 	}
@@ -45,6 +47,7 @@ func newClient(ctx context.Context) (c *client, err error) {
 			Instance: r.CurrentInstance,
 			Filter:   g.Cfg().MustGet(ctx, "mirror.client.filter", []string{}).Strings(),
 		},
+		auth: authentication.NewLocal(g.Cfg().MustGet(ctx, "mirror.client.secret", "").String()),
 	}
 
 	c.ctx, c.cancel = context.WithCancel(ctx)
@@ -72,7 +75,12 @@ func (c *client) register(ctx context.Context) (interval int64, err error) {
 	}
 	ctx, cancelFunc := context.WithTimeout(ctx, time.Second*1)
 	defer cancelFunc()
-	res, err := mir.NewMirrorClient(cc).Register(ctx, &mir.RegisterReq{Instance: convert2ins(c.Instance), Filter: c.Filter})
+	res, err := mir.NewMirrorClient(cc).Register(ctx,
+		&mir.RegisterReq{
+			Instance:       convert2ins(c.Instance),
+			Filter:         c.Filter,
+			Authentication: c.auth.Encode(c.Instance.Id)},
+	)
 	if err != nil {
 		return
 	}
@@ -111,7 +119,11 @@ func (c *client) deregister(ctx context.Context) (err error) {
 	}
 	ctx, cancelFunc := context.WithTimeout(ctx, time.Second*1)
 	defer cancelFunc()
-	_, err = mir.NewMirrorClient(cc).UnRegister(ctx, &mir.UnRegisterReq{Instance: convert2ins(c.Instance)})
+	_, err = mir.NewMirrorClient(cc).UnRegister(ctx,
+		&mir.UnRegisterReq{
+			Instance:       convert2ins(c.Instance),
+			Authentication: c.auth.Encode(c.Instance.Id)},
+	)
 	return
 }
 

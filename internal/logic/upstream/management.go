@@ -10,6 +10,8 @@ import (
 	"google.golang.org/grpc"
 
 	ups "api-gateway/api/inner/upstream"
+	"api-gateway/internal/components/authentication"
+	r "api-gateway/internal/components/registry"
 	"api-gateway/internal/components/upstream"
 	"api-gateway/internal/components/utils"
 	"api-gateway/internal/model"
@@ -40,14 +42,22 @@ func (s sUpstreamManagement) GetServiceState(ctx context.Context, serviceName st
 		return
 	}
 	output = new(model.GetServiceStateOutput)
-	output.Detail = make(map[string][]*upstream.UpsState)
+	output.Detail = make(map[string][]any)
 	getServiceStatus := func(ctx context.Context,
 		cc *grpc.ClientConn,
-		instance *registry.Instance) (err error) {
+		instance *registry.Instance) {
+
 		ctx, cancelFunc := context.WithTimeout(ctx, time.Second*1)
 		defer cancelFunc()
-		states, err := ups.NewManagementClient(cc).GetServiceStates(ctx, &ups.GetServiceStatesReq{ServiceName: serviceName})
+		states, err := ups.NewManagementClient(cc).GetServiceStates(ctx, &ups.GetServiceStatesReq{
+			ServiceName:    serviceName,
+			InstanceId:     r.CurrentInstance.Id,
+			Authentication: authentication.L.Encode(r.CurrentInstance.Id),
+		})
 		if err != nil {
+			output.Detail[instance.HostName] = append(output.Detail[instance.HostName], map[string]any{
+				"error": err.Error(),
+			})
 			return
 		}
 		for _, state := range states.States {
@@ -61,7 +71,7 @@ func (s sUpstreamManagement) GetServiceState(ctx context.Context, serviceName st
 				BreakerState: state.GetBreakerState(),
 			})
 		}
-		return nil
+		return
 	}
 
 	var cc *grpc.ClientConn
@@ -70,9 +80,7 @@ func (s sUpstreamManagement) GetServiceState(ctx context.Context, serviceName st
 		if err != nil {
 			return
 		}
-		if err = getServiceStatus(ctx, cc, instance); err != nil {
-			return
-		}
+		getServiceStatus(ctx, cc, instance)
 	}
 
 	return

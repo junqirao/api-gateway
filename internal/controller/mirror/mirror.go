@@ -7,7 +7,9 @@ import (
 	registry "github.com/junqirao/simple-registry"
 
 	v1 "api-gateway/api/mirror/v1"
+	"api-gateway/internal/components/authentication"
 	"api-gateway/internal/components/mirror"
+	"api-gateway/internal/components/response"
 
 	"github.com/gogf/gf/contrib/rpc/grpcx/v2"
 )
@@ -22,11 +24,15 @@ func Register(s *grpcx.GrpcServer) {
 
 func (c *Controller) Register(ctx context.Context, in *v1.RegisterReq) (res *v1.RegisterRes, err error) {
 	ins := in.GetInstance()
-	ci := mirror.ClientInfo{
+	if !authentication.L.Compare(ins.GetId(), in.GetAuthentication()) {
+		err = response.CodePermissionDeny
+		return
+	}
+
+	ttl, err := mirror.Register(ctx, mirror.ClientInfo{
 		Instance: c.convert2ins(ins),
 		Filter:   in.GetFilter(),
-	}
-	ttl, err := mirror.Register(ctx, ci)
+	})
 	if err != nil {
 		return
 	}
@@ -35,6 +41,10 @@ func (c *Controller) Register(ctx context.Context, in *v1.RegisterReq) (res *v1.
 }
 
 func (c *Controller) UnRegister(ctx context.Context, in *v1.UnRegisterReq) (res *v1.UnRegisterRes, err error) {
+	if !authentication.L.Compare(in.GetInstance().GetId(), in.GetAuthentication()) {
+		err = response.CodePermissionDeny
+		return
+	}
 	err = mirror.UnRegister(ctx, c.convert2ins(in.GetInstance()))
 	if err != nil {
 		return
