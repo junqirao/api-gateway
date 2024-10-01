@@ -3,6 +3,7 @@ package jwt
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
@@ -31,6 +32,7 @@ func Init(ctx context.Context) {
 }
 
 func parseTokenMap(s string) (map[string]interface{}, error) {
+	s = strings.TrimPrefix(s, "Bearer ")
 	claims, err := parseToken(s, keyFunc)
 	if err != nil {
 		return emptyClaims, err
