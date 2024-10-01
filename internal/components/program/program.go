@@ -26,6 +26,7 @@ const (
 	envKeyUpstream             = "upstream"
 	envKeyCtx                  = "ctx"
 	envKeyTerminateIf          = "terminate_if"
+	envKeyIPGEO                = "ipgeo"
 )
 
 type (
@@ -80,31 +81,13 @@ func NewProgram(name, statements string) (*Program, error) {
 	return p, p.build(statements)
 }
 
-func (p *Program) Exec(ctx context.Context, env ...map[string]interface{}) error {
+func (p *Program) Exec(_ context.Context, env ...map[string]interface{}) error {
 	// prepare
 	var e map[string]interface{}
 	if len(env) > 0 && env[0] != nil {
 		e = env[0]
 	} else {
 		e = make(map[string]interface{})
-	}
-
-	e[envKeyGlobalVariable] = Variables.GetGlobalVariables(ctx)
-	e[envKeyCtx] = ctx
-	e[envKeyExprMultilineWrapper] = p.exprMultilineWrapper
-	e[envKeyNewResultWrapper] = newResultWrapper
-	e[envKeyTerminateIf] = func(flag bool, reason ...string) error {
-		if !flag {
-			return nil
-		}
-		reasonStr := "request terminated"
-		if len(reason) > 0 && reason[0] != "" {
-			reasonStr = reason[0]
-		}
-		return errors.New(reasonStr)
-	}
-	e[envKeySetGlobalVariable] = func(key string, value interface{}) error {
-		return Variables.SetGlobalVariable(ctx, key, value)
 	}
 
 	// run
@@ -156,15 +139,6 @@ func (p *Program) build(statements string) (err error) {
 		return
 	}
 	p.p = program
-	return
-}
-
-func (p *Program) exprMultilineWrapper(lines ...*resultWrapper) (errMsg string) {
-	for _, line := range lines {
-		if b, reason := line.Ok(); !b {
-			return reason
-		}
-	}
 	return
 }
 
