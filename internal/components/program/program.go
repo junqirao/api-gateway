@@ -27,6 +27,7 @@ const (
 	envKeyCtx                  = "ctx"
 	envKeyTerminateIf          = "terminate_if"
 	envKeyIPGEO                = "ipgeo"
+	envKeyJWT                  = "jwt"
 )
 
 type (

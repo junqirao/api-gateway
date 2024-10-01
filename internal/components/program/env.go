@@ -3,12 +3,14 @@ package program
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	registry "github.com/junqirao/simple-registry"
 
 	"api-gateway/internal/components/program/extra/ipgeo"
+	"api-gateway/internal/components/program/extra/jwt"
 )
 
 type (
@@ -68,7 +70,12 @@ func (w logWrapper) Errorf(format string, v ...interface{}) bool {
 }
 
 func BuildEnvFromRequest(ctx context.Context, r *ghttp.Request, ups registry.Instance) map[string]interface{} {
-	clientIp := r.GetClientIp()
+	// runtime
+	var (
+		runtime  = make(map[string]interface{})
+		clientIp = r.GetClientIp()
+	)
+
 	return map[string]interface{}{
 		// base
 		envKeyNewResultWrapper:     newResultWrapper,
@@ -105,6 +112,16 @@ func BuildEnvFromRequest(ctx context.Context, r *ghttp.Request, ups registry.Ins
 		},
 		envKeyResponse: &responseWrapper{
 			Header: newHeaderWrapper(r.Response.Header()),
+		},
+		envKeyJWT: func(header ...string) *jwt.Wrapper {
+			var key = "Authorization"
+			if len(header) > 0 && header[0] == "" {
+				key = header[0]
+			}
+			if v, ok := runtime[fmt.Sprintf("%s.%s", envKeyJWT, key)]; ok {
+				return v.(*jwt.Wrapper)
+			}
+			return jwt.ParseToken(r.GetHeader(key))
 		},
 	}
 }
