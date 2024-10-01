@@ -26,6 +26,8 @@ configuration hot updates supported programmable api gateway
                 * [logger](#logger)
                 * [upstream](#upstream)
                 * [terminate_if](#terminate_if)
+                * [jwt](#jwt)
+                * [ipgeo](#ipgeo)
         * [Metric](#metric)
             * [Basic](#basic)
             * [Extra](#extra)
@@ -184,6 +186,7 @@ request object
 | Name               | Type     | Description              | Usage                                             |
 |--------------------|----------|--------------------------|---------------------------------------------------|
 | request.RemoteAddr | String   | request remote address   | ```request.RemoteAddr```                          |
+| request.ClientIP   | String   | request client ip        | ```request.ClientIP```                            |
 | request.Host       | String   | request host             | ```request.Host```                                |
 | request.URL        | String   | request url              | ```request.URL```                                 |
 | request.Method     | String   | request method           | ```request.Method```                              |
@@ -219,14 +222,14 @@ context from request, use as parameter of function
 
 logger object
 
-| Name          | Type     | Description                   | Usage                                                      |
-|---------------|----------|-------------------------------|------------------------------------------------------------|
-| logger.Info   | Function | log with info level           | ```logger.Info(ctx context, value any)```                  |
-| logger.Warn   | Function | log with warn level           | ```logger.Warn(ctx context, value any)```                  |
-| logger.Error  | Function | log with error level          | ```logger.Error(ctx context, value any)```                 |
-| logger.Infof  | Function | formated log with info level  | ```logger.Infof(ctx context, format string, value any)```  |
-| logger.Warnf  | Function | formated log with warn level  | ```logger.Warnf(ctx context, format string, value any)```  |
-| logger.Errorf | Function | formated log with error level | ```logger.Errorf(ctx context, format string, value any)``` |
+| Name          | Type     | Description                   | Usage                                         |
+|---------------|----------|-------------------------------|-----------------------------------------------|
+| logger.Info   | Function | log with info level           | ```logger.Info(value any)```                  |
+| logger.Warn   | Function | log with warn level           | ```logger.Warn(value any)```                  |
+| logger.Error  | Function | log with error level          | ```logger.Error(value any)```                 |
+| logger.Infof  | Function | formated log with info level  | ```logger.Infof(format string, value any)```  |
+| logger.Warnf  | Function | formated log with warn level  | ```logger.Warnf(format string, value any)```  |
+| logger.Errorf | Function | formated log with error level | ```logger.Errorf(format string, value any)``` |
 
 ##### upstream
 
@@ -244,6 +247,69 @@ logger object
 | Name         | Type     | Description                      | Usage                                                       |
 |--------------|----------|----------------------------------|-------------------------------------------------------------|
 | terminate_if | Function | terminate request with condition | ```terminate_if(condition bool, reason [optional]string)``` |
+
+##### jwt
+
+| Name              | Type     | Description                         | Usage                                               |
+|-------------------|----------|-------------------------------------|-----------------------------------------------------|
+| jwt               | Function | jwt object                          | ```jwt(header_key [optinal]string)```               |
+| jwt().MustSuccess | Function | terminate request when parse failed | ```jwt(header_key [optinal]string).MustSuccess()``` |
+| jwt().Claims      | Map      | jwt claims object                   | ```jwt(header_key [optinal]string).Claims```        |
+
+Example:
+
+```
+// header["Authentication"] = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJiYXoiOiJxdXgiLCJmb28iOiJiYXIifQ.UyL2QgWoIz5Y3IdCeBk98_2-W26RTc5SCi7k0PCXbQw"
+// payload = {"baz": "qux", "foo": "bar"}, key = "test_key_123456"
+
+jwt().MustSuccess();                                      // nil
+logger.Infof("jwt claims %v", jwt().Claims);              // jwt claims map[baz:qux foo:bar]
+logger.Infof("jwt claims-foo %v", jwt().Claims["foo"]);   // jwt claims-foo bar
+```
+
+Config:
+
+```yaml
+program:
+  extra:
+    jwt:
+      # jwt key
+      key: "test_key_123456"
+      # for kid mapping in jwt header, optional
+      keys_mapping: {
+        "key1": "123456",
+        "key2": "abcdefg"
+      }
+```
+
+##### ipgeo
+
+> provide ISO 3166 country code and city code query,
+> based on local mmdb database.
+
+| Name          | Type     | Description                                   | Usage                 |
+|---------------|----------|-----------------------------------------------|-----------------------|
+| ipgeo.Country | Function | get country code                              | ```ipgeo.Country()``` |
+| ipgeo.City    | Function | get city code (if database supported)         | ```ipgeo.City()```    |
+| ipgeo.CityEN  | Function | get city code in "en" (if database supported) | ```ipgeo.CityEN()```  |
+
+Example:
+
+```
+logger.Infof("country %s", ipgeo.Country());  // country CN
+logger.Infof("city %s", ipgeo.City());        // city map[de:Hangzhou en:Hangzhou es:Hangzhou fr:Hangzhou ja:杭州市 pt-BR:Hangzhou ru:Ханчжоу zh-CN:杭州]
+logger.Infof("city_en %s", ipgeo.CityEN());   // city_en Hangzhou
+```
+
+Config:
+
+```yaml
+program:
+  extra:
+    ipgeo:
+      # mmdb download from https://www.maxmind.com/
+      database: "GeoLite2-City.mmdb"
+```
 
 ### Metric
 

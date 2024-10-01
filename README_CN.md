@@ -26,6 +26,8 @@
                 * [logger](#logger)
                 * [upstream](#upstream)
                 * [terminate_if](#terminate_if)
+                * [jwt](#jwt)
+                * [ipgeo](#ipgeo)
         * [Metric](#metric)
             * [基础指标](#基础指标)
             * [额外指标](#额外指标)
@@ -182,6 +184,7 @@ request object
 | Name               | Type     | Description | Usage                                             |
 |--------------------|----------|-------------|---------------------------------------------------|
 | request.RemoteAddr | String   | 请求客户端地址     | ```request.RemoteAddr```                          |
+| request.ClientIP   | String   | 请求客户端IP地址   | ```request.ClientIP```                            |
 | request.Host       | String   | 请求主机        | ```request.Host```                                |
 | request.URL        | String   | 请求url       | ```request.URL```                                 |
 | request.Method     | String   | 请求方法        | ```request.Method```                              |
@@ -217,14 +220,14 @@ response object
 
 logger object
 
-| Name          | Type     | Description     | Usage                                                      |
-|---------------|----------|-----------------|------------------------------------------------------------|
-| logger.Info   | Function | 记录info级别日志      | ```logger.Info(ctx context, value any)```                  |
-| logger.Warn   | Function | 记录warn级别日志      | ```logger.Warn(ctx context, value any)```                  |
-| logger.Error  | Function | 记录error级别日志     | ```logger.Error(ctx context, value any)```                 |
-| logger.Infof  | Function | 记录格式化的info级别日志  | ```logger.Infof(ctx context, format string, value any)```  |
-| logger.Warnf  | Function | 记录格式化的warn级别日志  | ```logger.Warnf(ctx context, format string, value any)```  |
-| logger.Errorf | Function | 记录格式化的error级别日志 | ```logger.Errorf(ctx context, format string, value any)``` |
+| Name          | Type     | Description     | Usage                                         |
+|---------------|----------|-----------------|-----------------------------------------------|
+| logger.Info   | Function | 记录info级别日志      | ```logger.Info(value any)```                  |
+| logger.Warn   | Function | 记录warn级别日志      | ```logger.Warn(value any)```                  |
+| logger.Error  | Function | 记录error级别日志     | ```logger.Error(value any)```                 |
+| logger.Infof  | Function | 记录格式化的info级别日志  | ```logger.Infof(format string, value any)```  |
+| logger.Warnf  | Function | 记录格式化的warn级别日志  | ```logger.Warnf(format string, value any)```  |
+| logger.Errorf | Function | 记录格式化的error级别日志 | ```logger.Errorf(format string, value any)``` |
 
 ##### upstream
 
@@ -242,6 +245,68 @@ logger object
 | Name         | Type     | Description | Usage                                                       |
 |--------------|----------|-------------|-------------------------------------------------------------|
 | terminate_if | Function | 条件终止        | ```terminate_if(condition bool, reason [optional]string)``` |
+
+##### jwt
+
+| Name              | Type     | Description   | Usage                                               |
+|-------------------|----------|---------------|-----------------------------------------------------|
+| jwt               | Function | jwt对象         | ```jwt(header_key [optinal]string)```               |
+| jwt().MustSuccess | Function | 当解析jwt失败时终止请求 | ```jwt(header_key [optinal]string).MustSuccess()``` |
+| jwt().Claims      | Map      | jwt claims 对象 | ```jwt(header_key [optinal]string).Claims```        |
+
+Example:
+
+```
+// header["Authentication"] = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJiYXoiOiJxdXgiLCJmb28iOiJiYXIifQ.UyL2QgWoIz5Y3IdCeBk98_2-W26RTc5SCi7k0PCXbQw"
+// payload = {"baz": "qux", "foo": "bar"}, key = "test_key_123456"
+
+jwt().MustSuccess();                                      // nil
+logger.Infof("jwt claims %v", jwt().Claims);              // jwt claims map[baz:qux foo:bar]
+logger.Infof("jwt claims-foo %v", jwt().Claims["foo"]);   // jwt claims-foo bar
+```
+
+Config:
+
+```yaml
+program:
+  extra:
+    jwt:
+      # jwt key
+      key: "test_key_123456"
+      # 用于jwt header中的kid映射密钥，可选
+      keys_mapping: {
+        "key1": "123456",
+        "key2": "abcdefg"
+      }
+```
+
+##### ipgeo
+
+> 提供ISO 3166国家代码和城市代码查询，基于本地mmdb数据库。
+
+| Name          | Type     | Description       | Usage                 |
+|---------------|----------|-------------------|-----------------------|
+| ipgeo.Country | Function | 获取国家代码            | ```ipgeo.Country()``` |
+| ipgeo.City    | Function | 获取城市代码（需要数据库支持）   | ```ipgeo.City()```    |
+| ipgeo.CityEN  | Function | 获取英文城市代码（需要数据库支持） | ```ipgeo.CityEN()```  |
+
+Example:
+
+```
+logger.Infof("country %s", ipgeo.Country());  // country CN
+logger.Infof("city %s", ipgeo.City());        // city map[de:Hangzhou en:Hangzhou es:Hangzhou fr:Hangzhou ja:杭州市 pt-BR:Hangzhou ru:Ханчжоу zh-CN:杭州]
+logger.Infof("city_en %s", ipgeo.CityEN());   // city_en Hangzhou
+```
+
+Config:
+
+```yaml
+program:
+  extra:
+    ipgeo:
+      # 数据库文件下载 https://www.maxmind.com/
+      database: "GeoLite2-City.mmdb"
+```
 
 ### Metric
 
