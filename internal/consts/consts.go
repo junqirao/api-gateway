@@ -1,5 +1,9 @@
 package consts
 
+const (
+	DefaultServerAgent = "API Gateway"
+)
+
 // context key define
 const (
 	CtxKeyResultCallback = "___result_callback"

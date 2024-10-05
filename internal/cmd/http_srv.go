@@ -29,6 +29,7 @@ func runHttpSrvBlock(ctx context.Context) {
 	pattern = fmt.Sprintf("%s*", pattern)
 
 	s := g.Server()
+	s.SetServerAgent(g.Cfg().MustGet(ctx, "server.agent", consts.DefaultServerAgent).String())
 	debug := g.Cfg().MustGet(ctx, "server.debug", false).Bool()
 	s.SetDumpRouterMap(debug)
 	if debug {
