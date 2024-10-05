@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	"api-gateway/internal/components/authentication"
 	cfg "api-gateway/internal/components/config"
 	"api-gateway/internal/components/prometheus"
 	"api-gateway/internal/components/response"
@@ -50,15 +50,7 @@ func runHttpSrvBlock(ctx context.Context) {
 		}
 		s.Group(fmt.Sprintf("%s/management", entrance), func(group *ghttp.RouterGroup) {
 			// auth middleware
-			if pwd := g.Cfg().MustGet(ctx, "gateway.management.password").String(); pwd != "" {
-				group.Middleware(func(r *ghttp.Request) {
-					if gmd5.MustEncryptString(r.GetHeader("Authorization")) != pwd {
-						response.WriteJSON(r, response.CodeNotFound)
-						return
-					}
-					r.Middleware.Next()
-				})
-			}
+			group.Middleware(authentication.L.Middleware)
 
 			group.Group("/", func(group *ghttp.RouterGroup) {
 				group.Middleware(response.Middleware)

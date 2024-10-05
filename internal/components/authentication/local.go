@@ -5,7 +5,10 @@ import (
 
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gctx"
+
+	"api-gateway/internal/components/response"
 )
 
 var (
@@ -14,7 +17,7 @@ var (
 
 type (
 	Local struct {
-		secret string // twice hashed
+		secret string
 	}
 )
 
@@ -30,17 +33,36 @@ func NewLocal(secret ...string) *Local {
 	}
 }
 
-func (l *Local) Compare(encode string, secretText string) bool {
+func (l *Local) Compare(secretText string, label ...string) bool {
 	if l.secret == "" {
 		return true
 	}
-	return l.Encode(encode) == secretText
+	return l.Encode(label...) == secretText
 }
 
-func (l *Local) Encode(encode string) string {
+func (l *Local) Encode(label ...string) string {
 	b := strings.Builder{}
-	b.Write([]byte(encode))
-	b.WriteString(".")
+	labelStr := ""
+	if len(label) > 0 && label[0] != "" {
+		labelStr = label[0]
+	}
+	if labelStr != "" {
+		b.Write([]byte(labelStr))
+		b.WriteString(".")
+	}
 	b.Write([]byte(l.secret))
 	return gmd5.MustEncrypt(b.String())
+}
+
+func (l *Local) Middleware(r *ghttp.Request) {
+	authStr := r.GetHeader("Authorization")
+	if authStr == "" {
+		response.WriteJSON(r, response.CodeUnauthorized.WithDetail("Authorization header is required"))
+		return
+	}
+	if !l.Compare(authStr) {
+		response.WriteJSON(r, response.CodePermissionDeny)
+		return
+	}
+	r.Middleware.Next()
 }

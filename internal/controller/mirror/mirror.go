@@ -29,7 +29,7 @@ func (c *Controller) Register(ctx context.Context, in *v1.RegisterReq) (res *v1.
 		return
 	}
 	ins := in.GetInstance()
-	if !authentication.L.Compare(ins.GetId(), in.GetAuthentication()) {
+	if !authentication.L.Compare(in.GetAuthentication(), ins.GetId()) {
 		err = response.CodePermissionDeny
 		return
 	}
@@ -51,7 +51,7 @@ func (c *Controller) UnRegister(ctx context.Context, in *v1.UnRegisterReq) (res 
 		err = response.CodePermissionDeny.WithDetail(addr)
 		return
 	}
-	if !authentication.L.Compare(in.GetInstance().GetId(), in.GetAuthentication()) {
+	if !authentication.L.Compare(in.GetAuthentication(), in.GetInstance().GetId()) {
 		err = response.CodePermissionDeny
 		return
 	}

@@ -20,7 +20,7 @@ func Register(s *grpcx.GrpcServer) {
 }
 
 func (*Controller) GetServiceStates(_ context.Context, req *upstream.GetServiceStatesReq) (res *upstream.GetServiceStatesResp, err error) {
-	if !authentication.L.Compare(req.GetInstanceId(), req.GetAuthentication()) {
+	if !authentication.L.Compare(req.GetAuthentication(), req.GetInstanceId()) {
 		err = response.CodePermissionDeny
 		return
 	}
