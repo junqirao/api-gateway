@@ -29,7 +29,9 @@ func runHttpSrvBlock(ctx context.Context) {
 	pattern = fmt.Sprintf("%s*", pattern)
 
 	s := g.Server()
-	if g.Cfg().MustGet(ctx, "server.debug", false).Bool() {
+	debug := g.Cfg().MustGet(ctx, "server.debug", false).Bool()
+	s.SetDumpRouterMap(debug)
+	if debug {
 		g.Log().Info(ctx, "pprof enabled")
 		s.EnablePProf()
 	}
