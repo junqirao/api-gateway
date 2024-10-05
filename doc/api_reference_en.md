@@ -25,13 +25,13 @@ generator: "@tarslib/widdershins v4.0.23"
 
 at config.yaml
 
-    gateway.management.password
+    auth.secret
 
 If not configured, ignore. If set, the Authentication value is plaintext password once MD5
 
 relationship:
 
-    clear-text passwords --md5--> Authentication ---md5--> gateway.management.password
+    clear-text passwords --md5--> Authentication = <---md5-- auth.secret
 
 ## GET Config
 

@@ -317,7 +317,7 @@ program:
 GET {entrance}/management/metrics
 ```
 
-_notice: if gateway.management.password not empty, request header "Authorization" is required._
+_notice: if ```auth.secret``` not empty, request header "Authorization" is required._
 
 #### Basic
 
@@ -402,6 +402,10 @@ logger:
   level: "all"
   stdout: true
 
+# auth config
+auth:
+  secret: "P@sswOrd"
+
 # gateway config
 gateway:
   # proxy prefix
@@ -414,10 +418,6 @@ gateway:
     entrance: ""
     # enable management api
     enable: true
-    # md5 twice hashed password
-    # md5("password")->"5f4dcc3b5aa765d61d8327deb882cf99"->md5("5f4dcc3b5aa765d61d8327deb882cf99") = "696d29e0940a4957748fe3fc9efd22a3"
-    # if password not empty, calling management api, "Authorization" header is required, value is md5("password")
-    password: "696d29e0940a4957748fe3fc9efd22a3"
 
 # request mirror config
 mirror:

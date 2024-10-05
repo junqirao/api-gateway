@@ -25,13 +25,13 @@ generator: "@tarslib/widdershins v4.0.23"
 
 见config.yaml
 
-    gateway.management.password
+    auth.secret
 
 如没有配置则忽略，若有设置，Authentication值为明文密码一次MD5
 
 关系为：
 
-    明文密码 --md5--> Authentication ---md5--> gateway.management.password
+    明文密码 --md5--> Authentication = <--md5-- auth.secret
 
 ## GET 获取配置
 

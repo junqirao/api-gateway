@@ -314,7 +314,7 @@ program:
 GET {entrance}/management/metrics
 ```
 
-_注意：如果配置中 gateway.management.password 不为空，请求头需要添加 "Authorization" 字段。_
+_注意：如果配置中 ```auth.secret``` 不为空，请求头需要添加 "Authorization" 字段。_
 
 #### 基础指标
 
@@ -396,6 +396,10 @@ logger:
   level: "all"
   stdout: true
 
+# 鉴权相关
+auth:
+  secret: "P@sswOrd"
+
 # 网关配置
 gateway:
   # 代理url前缀
@@ -408,11 +412,6 @@ gateway:
     entrance: ""
     # 是否开启管理api
     enable: true
-    # md5两次加密的密码
-    # md5("password")->"5f4dcc3b5aa765d61d8327deb882cf99"->md5("5f4dcc3b5aa765d61d8327deb882cf99") = "696d29e0940a4957748fe3fc9efd22a3"
-    # 如果这个字段不为空，在调用管理API时，需要在请求头""Authorization"中添加明文密码一次哈希的值
-    password: "696d29e0940a4957748fe3fc9efd22a3"
-
 
 # 流量复制配置
 mirror:
