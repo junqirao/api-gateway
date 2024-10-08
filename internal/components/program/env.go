@@ -72,8 +72,8 @@ func (w logWrapper) Errorf(format string, v ...interface{}) bool {
 func BuildEnvFromRequest(ctx context.Context, r *ghttp.Request, ups registry.Instance) map[string]interface{} {
 	// runtime
 	var (
-		runtime  = make(map[string]interface{})
-		clientIp = r.GetClientIp()
+		runtime             = make(map[string]interface{})
+		clientIp, req, resp = buildWrapperFromRequest(r)
 	)
 
 	return map[string]interface{}{
@@ -102,17 +102,8 @@ func BuildEnvFromRequest(ctx context.Context, r *ghttp.Request, ups registry.Ins
 		},
 		// runtime
 		envKeyUpstream: ups,
-		envKeyRequest: &requestWrapper{
-			ClientIP:   clientIp,
-			RemoteAddr: r.GetRemoteIp(),
-			Host:       r.GetHost(),
-			URL:        r.GetUrl(),
-			Method:     r.Method,
-			Header:     newHeaderWrapper(r.Request.Header),
-		},
-		envKeyResponse: &responseWrapper{
-			Header: newHeaderWrapper(r.Response.Header()),
-		},
+		envKeyRequest:  &req,
+		envKeyResponse: &resp,
 		envKeyJWT: func(header ...string) *jwt.Wrapper {
 			var key = "Authorization"
 			if len(header) > 0 && header[0] == "" {
@@ -121,7 +112,33 @@ func BuildEnvFromRequest(ctx context.Context, r *ghttp.Request, ups registry.Ins
 			if v, ok := runtime[fmt.Sprintf("%s.%s", envKeyJWT, key)]; ok {
 				return v.(*jwt.Wrapper)
 			}
-			return jwt.ParseToken(r.GetHeader(key))
+			return jwt.ParseToken(req.Header.Get(key))
 		},
 	}
+}
+
+func buildWrapperFromRequest(r *ghttp.Request) (clientIp string, req requestWrapper, resp responseWrapper) {
+	if r != nil {
+		clientIp := r.GetClientIp()
+		req = requestWrapper{
+			ClientIP:   clientIp,
+			RemoteAddr: r.GetRemoteIp(),
+			Host:       r.GetHost(),
+			URL:        r.GetUrl(),
+			Method:     r.Method,
+			Header:     newHeaderWrapper(r.Request.Header),
+		}
+		resp = responseWrapper{
+			Header: newHeaderWrapper(r.Response.Header()),
+		}
+	} else {
+		header := newHeaderWrapper(nil)
+		req = requestWrapper{
+			Header: header,
+		}
+		resp = responseWrapper{
+			Header: header,
+		}
+	}
+	return
 }

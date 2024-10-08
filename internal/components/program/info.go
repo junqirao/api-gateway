@@ -33,6 +33,9 @@ func (i *Info) Decode() (res string, err error) {
 }
 
 func (i *Info) TryCompile(ctx context.Context) error {
-	_, err := NewProgram(i.Name, i.TryDecode(ctx))
-	return err
+	decoded, err := i.Decode()
+	if err != nil {
+		return err
+	}
+	return buildTest(ctx, decoded)
 }

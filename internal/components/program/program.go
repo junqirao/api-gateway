@@ -11,6 +11,7 @@ import (
 	"github.com/expr-lang/expr/vm"
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/frame/g"
+	registry "github.com/junqirao/simple-registry"
 )
 
 const (
@@ -113,15 +114,8 @@ func (p *Program) build(statements string) (err error) {
 	// pre process support multiline statements,
 	// till expr-lang supports https://github.com/expr-lang/expr/issues/697
 
-	// replace all line wrappers
-	statements = strings.ReplaceAll(statements, "\r", "")
-	statements = strings.ReplaceAll(statements, "\n", "")
-	statements = strings.ReplaceAll(statements, "\t", "")
-	statements = strings.TrimSpace(statements)
-
-	// split by lineSeparator
 	var parts []string
-	for _, s := range strings.Split(statements, lineSeparator) {
+	for _, s := range breakLine(statements) {
 		if s != "" {
 			parts = append(parts, fmt.Sprintf("%s(%s,`%s`)", envKeyNewResultWrapper, s, s))
 		}
@@ -135,6 +129,43 @@ func (p *Program) build(statements string) (err error) {
 	}
 	p.p = program
 	return
+}
+
+func buildTest(ctx context.Context, statements string) error {
+	env := BuildEnvFromRequest(ctx, nil, registry.Instance{
+		Id:          "program_build_test_id",
+		Host:        "program_build_test_host",
+		HostName:    "program_build_test_hostname",
+		Port:        0,
+		ServiceName: "program_build_test_service_name",
+		Meta:        make(map[string]interface{}),
+	})
+	for i, line := range breakLine(statements) {
+		p, err := expr.Compile(line)
+		if err != nil {
+			return fmt.Errorf("syntax error at line %d: %v", i+1, err)
+		}
+		if _, err = expr.Run(p, env); err != nil {
+			return fmt.Errorf("compile error at line %d: %v", i+1, err)
+		}
+	}
+	return nil
+}
+
+func breakLine(statements string) []string {
+	// replace all line wrappers
+	statements = strings.ReplaceAll(statements, "\r", "")
+	statements = strings.ReplaceAll(statements, "\n", "")
+	statements = strings.ReplaceAll(statements, "\t", "")
+	statements = strings.TrimSpace(statements)
+	// split by lineSeparator
+	var lines []string
+	for _, line := range strings.Split(statements, lineSeparator) {
+		if line != "" {
+			lines = append(lines, line)
+		}
+	}
+	return lines
 }
 
 func (p *Programs) Create(info *Info) error {
