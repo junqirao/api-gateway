@@ -10,7 +10,6 @@ import (
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/vm"
 	"github.com/gogf/gf/v2/crypto/gmd5"
-	"github.com/gogf/gf/v2/encoding/gbase64"
 	"github.com/gogf/gf/v2/frame/g"
 )
 
@@ -41,11 +40,6 @@ type (
 	Programs struct {
 		mu sync.RWMutex
 		ps []*Program
-	}
-	Info struct {
-		Expr        string `json:"expr"` // base64 encoded
-		Name        string `json:"name"`
-		ServiceName string `json:"service_name"`
 	}
 	resultWrapper struct {
 		v    any
@@ -80,11 +74,6 @@ func NewProgram(name, statements string) (*Program, error) {
 		Name: name,
 	}
 	return p, p.build(statements)
-}
-
-func TryCompile(name, statements string) (err error) {
-	_, err = NewProgram(name, statements)
-	return
 }
 
 func (p *Program) Exec(_ context.Context, env ...map[string]interface{}) error {
@@ -153,12 +142,7 @@ func (p *Programs) Create(info *Info) error {
 	defer p.mu.Unlock()
 
 	name := info.Name
-	statements, err := gbase64.DecodeToString(info.Expr)
-	if err != nil {
-		return err
-	}
-
-	program, err := NewProgram(name, statements)
+	program, err := NewProgram(name, info.TryDecode(context.Background()))
 	if err != nil {
 		return err
 	}
