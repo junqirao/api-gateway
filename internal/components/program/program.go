@@ -82,6 +82,11 @@ func NewProgram(name, statements string) (*Program, error) {
 	return p, p.build(statements)
 }
 
+func TryCompile(name, statements string) (err error) {
+	_, err = NewProgram(name, statements)
+	return
+}
+
 func (p *Program) Exec(_ context.Context, env ...map[string]interface{}) error {
 	// prepare
 	var e map[string]interface{}

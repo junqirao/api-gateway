@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gogf/gf/v2/encoding/gbase64"
 	"github.com/gogf/gf/v2/frame/g"
 	registry "github.com/junqirao/simple-registry"
 
@@ -41,6 +42,11 @@ func (s sProgramManagement) GetProgramInfo(ctx context.Context, serviceName stri
 }
 
 func (s sProgramManagement) SetProgramInfo(ctx context.Context, info *program.Info) (err error) {
+	// make sure no syntax error
+	err = program.TryCompile(info.Name, gbase64.MustDecodeToString(info.Expr))
+	if err != nil {
+		return
+	}
 	sto := registry.Storages.GetStorage(consts.StorageNameProgram)
 	err = sto.Set(ctx, fmt.Sprintf("%s%s%s", info.ServiceName, config.StorageSeparator, info.Name), info)
 	return
