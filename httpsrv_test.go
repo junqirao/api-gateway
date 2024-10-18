@@ -31,6 +31,10 @@ func TestHttpSrv2(t *testing.T) {
 	startEchoServer("test2", 8999, 30)
 }
 
+func TestHttpSrvBenchmark(t *testing.T) {
+	startBenchmarkServer("benchmark0", 9000, 100)
+}
+
 func startEchoServer(name string, port, weight int) {
 	id := fmt.Sprintf("server#%v", name)
 	server := g.Server(id)
@@ -89,6 +93,44 @@ func startEchoServer(name string, port, weight int) {
 		return
 	}
 	err = registry.Init(context.Background(), cfg, registry.NewInstance("test").WithMetaData(
+		map[string]interface{}{
+			"name":   name,
+			"weight": weight,
+		},
+	).WithAddress("127.0.0.1", port))
+	if err != nil {
+		panic(err)
+		return
+	}
+	grace.Register(context.Background(), "deregister_registry", func() {
+		_ = registry.Registry.Deregister(context.Background())
+	})
+	server.Run()
+	grace.ExecAndExit(context.Background())
+}
+
+func startBenchmarkServer(name string, port, weight int) {
+	id := fmt.Sprintf("server#%v", name)
+	server := g.Server(id)
+	server.SetPort(port)
+	server.SetClientMaxBodySize(consts.DefaultMaxBodySize)
+	server.Group("/", func(group *ghttp.RouterGroup) {
+		group.ALL("/echo", func(r *ghttp.Request) {
+			st := r.GetQuery("status", 200).Int()
+			slp := r.GetQuery("sleep", 0).Int()
+			if slp > 0 {
+				time.Sleep(time.Millisecond * time.Duration(slp))
+			}
+			response.WriteJSON(r, response.NewCode(st, id, st))
+		})
+	})
+	cfg := registry.Config{}
+	err := g.Cfg().MustGet(context.Background(), "registry").Struct(&cfg)
+	if err != nil {
+		panic(err)
+		return
+	}
+	err = registry.Init(context.Background(), cfg, registry.NewInstance("benchmark").WithMetaData(
 		map[string]interface{}{
 			"name":   name,
 			"weight": weight,
