@@ -35,6 +35,8 @@ func NewService(routingKey string, cfg config.ServiceConfig) *Service {
 		RoutingKey: routingKey,
 	}
 	config.RegisterConfigChangeEventHandler(routingKey, s.configEventHandler)
+	// update lb at first
+	balancer.Update(routingKey)
 	return s
 }
 
