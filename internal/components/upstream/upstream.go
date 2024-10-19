@@ -51,7 +51,7 @@ type (
 	ReverseProxyHandler = proxy.ReverseProxyHandler
 )
 
-func NewUpstream(ctx context.Context, instance *registry.Instance, cfg config.ServiceConfig) *Upstream {
+func NewUpstream(ctx context.Context, instance *registry.Instance, cfg config.ServiceConfig, parent *Service) *Upstream {
 	var (
 		weight int64 = 0
 	)
@@ -67,13 +67,14 @@ func NewUpstream(ctx context.Context, instance *registry.Instance, cfg config.Se
 
 	u := &Upstream{
 		Instance:   *instance,
+		Parent:     parent,
 		breaker:    breaker.New(breakerSetting),
 		limiter:    limiter.NewLimiter(cfg.RateLimiter),
 		highLoad:   &atomic.Bool{},
 		Measurable: balancer.NewMeasurable(time.Second),
 		Weighable:  balancer.NewWeighable(weight),
 	}
-	u.proxyHandler = NewHandler(ctx, u, cfg.ReverseProxy)
+	u.proxyHandler = NewHandler(ctx, u)
 	g.Log().Infof(ctx, "upstream %s created. weight=%d, breaker=%+v, limiter=%+v", u.Identity(), u.Weight(), cfg.Breaker, cfg.RateLimiter)
 	return u
 }

@@ -13,8 +13,10 @@ import (
 func Init(ctx context.Context) {
 	Cache = newUpstreamCache(ctx)
 	mirror.Init(ctx, func(ins *registry.Instance) (proxy.ReverseProxyHandler, error) {
-		return newHTTPHandler(ins.Host, ins.Port, ins.ServiceName, &config.ReverseProxyConfig{
-			DialTimeout: "500ms",
+		return newHTTPHandler(ins.Host, ins.Port, ins.ServiceName, func() *config.ReverseProxyConfig {
+			return &config.ReverseProxyConfig{
+				DialTimeout: "500ms",
+			}
 		}), nil
 	})
 }

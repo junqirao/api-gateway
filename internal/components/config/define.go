@@ -25,6 +25,8 @@ type (
 		TlsHandshakeTimeout string `json:"tls_handshake_timeout,omitempty"`
 		// Scheme http or https
 		Scheme string `json:"scheme,omitempty"`
+		// ResponseBuffering improve performance but costs more memory, default true
+		ResponseBuffering bool `json:"response_buffering"`
 	}
 	// LoadBalanceConfig load balance config
 	LoadBalanceConfig struct {

@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"sync/atomic"
@@ -138,16 +139,18 @@ func (s sProxy) doProxy(ctx context.Context,
 	// todo maybe add retryable config in the future
 	if !(len(isRetry) > 0 && isRetry[0]) {
 		// program
-		programs, err := program.GetOrCreate(input.RoutingKey)
-		if err != nil {
-			g.Log().Errorf(ctx, "get or create program failed: %v", err)
-		} else {
+		programs, err := program.Get(input.RoutingKey)
+		switch {
+		case errors.Is(err, program.ErrNotfound):
+		case err == nil:
 			var last string
 			last, err = programs.Exec(ctx, program.BuildEnvFromRequest(ctx, input.Request, ups.Instance))
 			if err != nil {
 				code = response.CodeBadRequest.WithMessage(last).WithDetail(err.Error())
 				return
 			}
+		default:
+			g.Log().Errorf(ctx, "get or create program failed: %v", err)
 		}
 	}
 

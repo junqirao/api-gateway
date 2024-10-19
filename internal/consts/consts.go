@@ -37,8 +37,9 @@ const (
 
 // default values
 const (
-	DefaultMaxBodySize    = 512 * 1024 * 1024 // 512M
-	RetryMaxContentLength = 10 * 1024 * 1024  // 10M
+	DefaultMaxBodySize           = 512 * 1024 * 1024 // 512M
+	RetryMaxContentLength        = 10 * 1024 * 1024  // 10M
+	BufferingResponseMaxBodySize = 10 * 1024 * 1024  // 10M
 )
 
 // storage name define

@@ -12,9 +12,17 @@ import (
 )
 
 var (
-	m     = sync.Map{} // service_name(routing_key):Programs
-	empty = &Programs{}
+	m           = sync.Map{} // service_name(routing_key):Programs
+	empty       = &Programs{}
+	ErrNotfound = errors.New("not found")
 )
+
+func Get(serviceName string) (*Programs, error) {
+	if p, ok := m.Load(serviceName); ok {
+		return p.(*Programs), nil
+	}
+	return nil, ErrNotfound
+}
 
 func GetOrCreate(serviceName string) (*Programs, error) {
 	if p, ok := m.Load(serviceName); ok {

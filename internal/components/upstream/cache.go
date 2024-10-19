@@ -48,7 +48,8 @@ func (h *cacheHandler) registerEvent() {
 		case registry.EventTypeUpdate, registry.EventTypeCreate:
 			g.Log().Infof(ctx, "service[%s] %s upstream, instance=%v", instance.ServiceName, e, instance.String())
 			cfg, _ := config.GetServiceConfig(instance.ServiceName)
-			h.getOrCreateService(ctx, instance.ServiceName).Set(NewUpstream(ctx, instance, *cfg))
+			srv := h.getOrCreateService(ctx, instance.ServiceName)
+			srv.Set(NewUpstream(ctx, instance, *cfg, srv))
 		case registry.EventTypeDelete:
 			g.Log().Infof(ctx, "service[%s] delete upstream instance=%s", instance.ServiceName, instance.Identity())
 			srv, ok := h.GetService(instance.ServiceName)
@@ -84,7 +85,7 @@ func (h *cacheHandler) build(ctx context.Context) {
 			id := instance.Identity()
 			delete(current, id)
 			// upsert
-			srv.Set(NewUpstream(ctx, instance, srv.Config))
+			srv.Set(NewUpstream(ctx, instance, srv.Config, srv))
 			g.Log().Infof(ctx, "build service[%s] upstream set instance=%v, ups_length=%d", sName, instance.String(), srv.CountUpstream())
 			return true
 		})

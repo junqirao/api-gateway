@@ -26,9 +26,11 @@ type (
 	}
 )
 
-func NewHandler(_ context.Context, ups *Upstream, cfg config.ReverseProxyConfig) (handler ReverseProxyHandler) {
+func NewHandler(_ context.Context, ups *Upstream) (handler ReverseProxyHandler) {
 	return newRetryableHandler(
-		newHTTPHandler(ups.Instance.Host, ups.Instance.Port, ups.ServiceName, &cfg),
+		newHTTPHandler(ups.Instance.Host, ups.Instance.Port, ups.ServiceName, func() *config.ReverseProxyConfig {
+			return &ups.Parent.Config.ReverseProxy
+		}),
 		ups)
 }
 

@@ -49,7 +49,6 @@ func (s *Service) Set(u *Upstream) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	u.Parent = s
 	for i, upstream := range s.ups {
 		if upstream.Identity() == u.Identity() {
 			s.ups[i] = u

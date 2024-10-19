@@ -1,8 +1,10 @@
 package upstream
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -18,7 +20,7 @@ import (
 
 type (
 	proxy2httpHandler struct {
-		cfg          *config.ReverseProxyConfig
+		cfg          func() *config.ReverseProxyConfig
 		scheme       string
 		host         string
 		prefixLength int
@@ -30,9 +32,9 @@ type (
 	resultCallback func(err error)
 )
 
-func newHTTPHandler(host string, port int, serviceName string, cfg *config.ReverseProxyConfig) *proxy2httpHandler {
+func newHTTPHandler(host string, port int, serviceName string, cfg func() *config.ReverseProxyConfig) *proxy2httpHandler {
 	var (
-		scheme              = cfg.Scheme
+		scheme              = cfg().Scheme
 		dialTimeout         = time.Second * 1
 		tlsHandshakeTimeout = time.Second * 1
 	)
@@ -40,14 +42,14 @@ func newHTTPHandler(host string, port int, serviceName string, cfg *config.Rever
 	if scheme == "" {
 		scheme = "http"
 	}
-	if cfg.DialTimeout != "" {
-		duration, err := time.ParseDuration(cfg.DialTimeout)
+	if cfg().DialTimeout != "" {
+		duration, err := time.ParseDuration(cfg().DialTimeout)
 		if err == nil {
 			dialTimeout = duration
 		}
 	}
-	if cfg.TlsHandshakeTimeout != "" {
-		duration, err := time.ParseDuration(cfg.TlsHandshakeTimeout)
+	if cfg().TlsHandshakeTimeout != "" {
+		duration, err := time.ParseDuration(cfg().TlsHandshakeTimeout)
 		if err == nil {
 			tlsHandshakeTimeout = duration
 		}
@@ -74,10 +76,8 @@ func newHTTPHandler(host string, port int, serviceName string, cfg *config.Rever
 		Transport: &http.Transport{
 			Proxy:                 http.ProxyFromEnvironment,
 			DialContext:           handler.dialer.DialContext,
-			ForceAttemptHTTP2:     true,
-			MaxIdleConns:          300,
-			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   tlsHandshakeTimeout,
+			IdleConnTimeout:       90 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 		},
 		ErrorHandler:   handler.errorHandler,
@@ -91,7 +91,7 @@ func (h *proxy2httpHandler) director(req *http.Request) {
 	req.URL.Scheme = h.scheme
 	req.URL.Host = h.host
 	req.Host = h.host
-	if h.cfg.TrimRoutingKeyPrefix {
+	if h.cfg().TrimRoutingKeyPrefix {
 		if i := strings.Index(req.URL.Path, h.routingKey); i != -1 {
 			req.URL.Path = req.URL.Path[i+h.prefixLength:]
 		}
@@ -110,7 +110,18 @@ func (h *proxy2httpHandler) errorHandler(_ http.ResponseWriter, request *http.Re
 	}
 }
 
-func (h *proxy2httpHandler) responseModifier(_ *http.Response) error {
+func (h *proxy2httpHandler) responseModifier(resp *http.Response) error {
+	if !h.cfg().ResponseBuffering ||
+		// avoid large response body
+		resp.ContentLength > consts.BufferingResponseMaxBodySize {
+		return nil
+	}
+
+	bb := &bytes.Buffer{}
+	if _, err := bb.ReadFrom(resp.Body); err != nil {
+		return err
+	}
+	resp.Body = io.NopCloser(bb)
 	return nil
 }
 

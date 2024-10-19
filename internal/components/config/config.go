@@ -23,6 +23,7 @@ var (
 	defaultGatewayPrefix = "/api/"
 	defaultRPConfig      = ReverseProxyConfig{
 		TrimRoutingKeyPrefix: true,
+		ResponseBuffering:    true,
 		RetryCount:           1,
 	}
 	defaultLBConfig = LoadBalanceConfig{
