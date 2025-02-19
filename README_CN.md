@@ -437,10 +437,10 @@ mirror:
 
 # 注册中心配置
 registry:
-  # 注册中心类型
-  type: "etcd"
   # 注册的服务名
   service_name: "api-gateway"
+
+kvdb:
   # 数据库设置
   database:
     # 数据库入口
@@ -457,4 +457,5 @@ registry:
 
 * [GoFrame](https://github.com/gogf/gf)
 * [go-expr](https://github.com/expr-lang/expr)
-* [simple-registry](https://github.com/junqirao/simple-registry)
+* [go-components](https://github.com/junqirao/gocomponents)
+* [~~simple-registry~~](https://github.com/junqirao/simple-registry)

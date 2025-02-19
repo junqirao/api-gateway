@@ -9,7 +9,8 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/net/gtrace"
 	"github.com/gogf/gf/v2/os/gctx"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/kvdb"
+	"github.com/junqirao/gocomponents/registry"
 
 	"api-gateway/internal/components/proxy"
 	r "api-gateway/internal/components/registry"
@@ -62,7 +63,7 @@ func newServer(ctx context.Context, newFunc func(ins *registry.Instance) (proxy.
 	s.buildClients(ctx)
 	g.Log().Infof(ctx, "mirror server build clients: %d", len(s.clients))
 	s.ctx, s.cancel = context.WithCancel(ctx)
-	registry.Storages.SetEventHandler(consts.StorageNameMirror, s.eventHandler(ctx))
+	kvdb.Storages.SetEventHandler(consts.StorageNameMirror, s.eventHandler(ctx))
 	s.wg.Add(workerCount)
 	for i := 0; i < workerCount; i++ {
 		go s.runWorker()
@@ -71,8 +72,8 @@ func newServer(ctx context.Context, newFunc func(ins *registry.Instance) (proxy.
 	return s
 }
 
-func (s *server) eventHandler(ctx context.Context) registry.StorageEventHandler {
-	return func(t registry.EventType, key string, value interface{}) {
+func (s *server) eventHandler(ctx context.Context) kvdb.StorageEventHandler {
+	return func(t kvdb.EventType, key string, value interface{}) {
 		// avoid loop
 		if key == r.CurrentInstance.Id {
 			return
@@ -82,9 +83,9 @@ func (s *server) eventHandler(ctx context.Context) registry.StorageEventHandler 
 		defer s.mu.Unlock()
 
 		switch t {
-		case registry.EventTypeCreate:
+		case kvdb.EventTypeCreate:
 			s.buildClients(ctx, key)
-		case registry.EventTypeDelete:
+		case kvdb.EventTypeDelete:
 			delete(s.clients, key)
 			g.Log().Infof(ctx, "mirror server deregistered client key=%s", key)
 		}
@@ -92,7 +93,7 @@ func (s *server) eventHandler(ctx context.Context) registry.StorageEventHandler 
 }
 
 func (s *server) buildClients(ctx context.Context, key ...string) {
-	kvs, err := registry.Storages.GetStorage(consts.StorageNameMirror).Get(ctx, key...)
+	kvs, err := kvdb.Storages.GetStorage(consts.StorageNameMirror).Get(ctx, key...)
 	if err != nil {
 		g.Log().Errorf(ctx, "mirror server failed to build clients: %v", err)
 		return
@@ -193,12 +194,12 @@ func (r *request) ResetRequestBody() {
 }
 
 func Register(ctx context.Context, info ClientInfo) (ttl int64, err error) {
-	return clientHeartbeatInterval, registry.Storages.GetStorage(consts.StorageNameMirror).
+	return clientHeartbeatInterval, kvdb.Storages.GetStorage(consts.StorageNameMirror).
 		SetTTL(ctx, info.Instance.Id, info, clientHeartbeatInterval)
 }
 
 func UnRegister(ctx context.Context, ins *registry.Instance) (err error) {
-	return registry.Storages.GetStorage(consts.StorageNameMirror).Delete(ctx, ins.Id)
+	return kvdb.Storages.GetStorage(consts.StorageNameMirror).Delete(ctx, ins.Id)
 }
 
 func Allow(ip string) bool {

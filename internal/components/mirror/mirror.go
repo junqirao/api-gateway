@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/frame/g"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/registry"
 
 	"api-gateway/internal/components/grace"
 	"api-gateway/internal/components/proxy"

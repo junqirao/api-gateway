@@ -9,7 +9,7 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/util/gconv"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/registry"
 	"github.com/sony/gobreaker"
 
 	"api-gateway/internal/components/balancer"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/kvdb"
 
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/response"
@@ -39,6 +39,6 @@ func (s sConfigManagement) UpdateConfig(ctx context.Context, input model.UpdateC
 		return response.CodeInvalidParameter.WithDetail(err.Error())
 	}
 
-	return registry.Storages.GetStorage(consts.StorageNameServiceConfig).
+	return kvdb.Storages.GetStorage(consts.StorageNameServiceConfig).
 		Set(ctx, fmt.Sprintf("%s%s%s", input.ServiceName, config.StorageSeparator, input.Model), ptr)
 }

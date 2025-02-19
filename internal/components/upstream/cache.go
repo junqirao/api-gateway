@@ -5,7 +5,8 @@ import (
 	"sync"
 
 	"github.com/gogf/gf/v2/frame/g"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/kvdb"
+	"github.com/junqirao/gocomponents/registry"
 
 	"api-gateway/internal/components/config"
 )
@@ -45,12 +46,12 @@ func (h *cacheHandler) registerEvent() {
 		}
 
 		switch e {
-		case registry.EventTypeUpdate, registry.EventTypeCreate:
+		case kvdb.EventTypeUpdate, kvdb.EventTypeCreate:
 			g.Log().Infof(ctx, "service[%s] %s upstream, instance=%v", instance.ServiceName, e, instance.String())
 			cfg, _ := config.GetServiceConfig(instance.ServiceName)
 			srv := h.getOrCreateService(ctx, instance.ServiceName)
 			srv.Set(NewUpstream(ctx, instance, *cfg, srv))
-		case registry.EventTypeDelete:
+		case kvdb.EventTypeDelete:
 			g.Log().Infof(ctx, "service[%s] delete upstream instance=%s", instance.ServiceName, instance.Identity())
 			srv, ok := h.GetService(instance.ServiceName)
 			if !ok {

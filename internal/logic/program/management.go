@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gogf/gf/v2/frame/g"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/kvdb"
 
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/program"
@@ -23,7 +23,7 @@ func init() {
 }
 
 func (s sProgramManagement) GetProgramInfo(ctx context.Context, serviceName string) (res map[string][]*program.Info, err error) {
-	kvs, err := registry.Storages.GetStorage(consts.StorageNameProgram).Get(ctx, serviceName)
+	kvs, err := kvdb.Storages.GetStorage(consts.StorageNameProgram).Get(ctx, serviceName)
 	if err != nil {
 		return
 	}
@@ -45,13 +45,13 @@ func (s sProgramManagement) SetProgramInfo(ctx context.Context, info *program.In
 	if err = info.TryCompile(ctx); err != nil {
 		return
 	}
-	sto := registry.Storages.GetStorage(consts.StorageNameProgram)
+	sto := kvdb.Storages.GetStorage(consts.StorageNameProgram)
 	err = sto.Set(ctx, fmt.Sprintf("%s%s%s", info.ServiceName, config.StorageSeparator, info.Name), info)
 	return
 }
 
 func (s sProgramManagement) DeleteProgramInfo(ctx context.Context, input model.DeleteProgramInfoInput) (err error) {
-	sto := registry.Storages.GetStorage(consts.StorageNameProgram)
+	sto := kvdb.Storages.GetStorage(consts.StorageNameProgram)
 	err = sto.Delete(ctx, fmt.Sprintf("%s%s%s", input.ServiceName, config.StorageSeparator, input.Name))
 	return
 }

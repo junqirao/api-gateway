@@ -10,7 +10,7 @@ import (
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/util/gconv"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/registry"
 
 	mir "api-gateway/api/mirror/v1"
 	"api-gateway/internal/components/authentication"

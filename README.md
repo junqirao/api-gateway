@@ -444,11 +444,11 @@ mirror:
 
 # registry config
 registry:
-  # registry type
-  type: "etcd"
   # register service_name
   service_name: "api-gateway"
-  # registry database config
+
+# kvdb config
+kvdb:
   database:
     # database endpoints
     endpoints:

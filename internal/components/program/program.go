@@ -11,7 +11,7 @@ import (
 	"github.com/expr-lang/expr/vm"
 	"github.com/gogf/gf/v2/crypto/gmd5"
 	"github.com/gogf/gf/v2/frame/g"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/registry"
 )
 
 const (

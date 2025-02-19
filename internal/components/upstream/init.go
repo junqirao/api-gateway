@@ -3,7 +3,7 @@ package upstream
 import (
 	"context"
 
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/registry"
 
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/components/mirror"

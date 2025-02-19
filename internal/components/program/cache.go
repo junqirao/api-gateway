@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/gogf/gf/v2/frame/g"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/kvdb"
 
 	"api-gateway/internal/consts"
 )
@@ -33,11 +33,11 @@ func GetOrCreate(serviceName string) (*Programs, error) {
 }
 
 func buildCacheByService(serviceName string) (*Programs, error) {
-	sto := registry.Storages.GetStorage(consts.StorageNameProgram)
+	sto := kvdb.Storages.GetStorage(consts.StorageNameProgram)
 	kvs, err := sto.Get(context.Background(), serviceName)
 	switch {
 	case err == nil:
-	case errors.Is(err, registry.ErrStorageNotFound):
+	case errors.Is(err, kvdb.ErrStorageNotFound):
 		err = nil
 	default:
 		return nil, err
@@ -66,7 +66,7 @@ func buildCacheByService(serviceName string) (*Programs, error) {
 }
 
 func buildCache(ctx context.Context) {
-	kvs, err := registry.Storages.GetStorage(consts.StorageNameProgram).Get(ctx)
+	kvs, err := kvdb.Storages.GetStorage(consts.StorageNameProgram).Get(ctx)
 	if err != nil {
 		g.Log().Errorf(ctx, "build program cache failed: %v", err)
 		return

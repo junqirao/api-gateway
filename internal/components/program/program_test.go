@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/gogf/gf/v2/frame/g"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/registry"
 )
 
 type test struct {

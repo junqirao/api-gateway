@@ -7,7 +7,7 @@ import (
 
 	"github.com/gogf/gf/contrib/rpc/grpcx/v2"
 	"github.com/gogf/gf/v2/util/gconv"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/registry"
 	"google.golang.org/grpc"
 )
 
