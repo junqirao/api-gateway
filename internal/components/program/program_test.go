@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/junqirao/gocomponents/kvdb"
 	"github.com/junqirao/gocomponents/registry"
 )
 
@@ -24,7 +25,7 @@ func TestProgram(t *testing.T) {
 		panic(err)
 		return
 	}
-	err = registry.Init(context.Background(), cfg)
+	err = registry.Init(context.Background(), kvdb.MustGetDatabase(context.Background()))
 	if err != nil {
 		panic(err)
 		return
