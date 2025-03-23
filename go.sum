@@ -47,8 +47,8 @@ github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aN
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/grokify/html-strip-tags-go v0.1.0 h1:03UrQLjAny8xci+R+qjCce/MYnpNXCtgzltlQbOBae4=
 github.com/grokify/html-strip-tags-go v0.1.0/go.mod h1:ZdzgfHEzAfz9X6Xe5eBLVblWIxXfYSQ40S/VKrAOGpc=
-github.com/junqirao/gocomponents v0.0.2-rc2 h1:igaBH5wyNZQB66s4R3Y8+8QXapyr3f6eVeMivsi5vi0=
-github.com/junqirao/gocomponents v0.0.2-rc2/go.mod h1:L2RzO9QmuJ0QtrdA/ZujY8SGvLxdWbFAIrAW3oet81I=
+github.com/junqirao/gocomponents v0.0.2 h1:56mHxXkoUz0MX02ZIBcMhKUgVR/wjCIhUybESTgiyYA=
+github.com/junqirao/gocomponents v0.0.2/go.mod h1:L2RzO9QmuJ0QtrdA/ZujY8SGvLxdWbFAIrAW3oet81I=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.17.11 h1:In6xLpyWOi1+C7tXUUWv2ot1QvBjxevKAaI6IXrJmUc=
