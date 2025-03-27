@@ -8,7 +8,7 @@ require (
 	github.com/gogf/gf/v2 v2.8.3
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
-	github.com/junqirao/gocomponents v0.0.2
+	github.com/junqirao/gocomponents v0.0.3
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/prometheus/client_golang v1.20.4
 	github.com/sony/gobreaker v1.0.0
@@ -46,8 +46,8 @@ require (
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	go.etcd.io/etcd/api/v3 v3.5.18 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.18 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.20 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.20 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.18 // indirect
 	go.opentelemetry.io/otel v1.29.0 // indirect
 	go.opentelemetry.io/otel/metric v1.29.0 // indirect
@@ -55,9 +55,9 @@ require (
 	go.opentelemetry.io/otel/trace v1.29.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240827150818-7e3bb234dfed // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240827150818-7e3bb234dfed // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
