@@ -9,7 +9,7 @@ import (
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/util/gconv"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/kvdb"
 
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/consts"
@@ -40,7 +40,7 @@ func (h *variableHandler) SetGlobalVariable(ctx context.Context, key string, val
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	err = registry.Storages.GetStorage(consts.StorageNameVariable).Set(ctx, key, value)
+	err = kvdb.Storages.GetStorage(consts.StorageNameVariable).Set(ctx, key, value)
 	if err == nil {
 		h.global[key] = gconv.String(value)
 	}
@@ -52,7 +52,7 @@ func (h *variableHandler) DeleteGlobalVariable(ctx context.Context, key string) 
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	err = registry.Storages.GetStorage(consts.StorageNameVariable).Delete(ctx, key)
+	err = kvdb.Storages.GetStorage(consts.StorageNameVariable).Delete(ctx, key)
 	if err == nil {
 		delete(h.global, key)
 	}
@@ -63,10 +63,10 @@ func (h *variableHandler) build(ctx context.Context) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	kvs, err := registry.Storages.GetStorage(consts.StorageNameVariable).Get(ctx)
+	kvs, err := kvdb.Storages.GetStorage(consts.StorageNameVariable).Get(ctx)
 	switch {
 	case err == nil:
-	case errors.Is(err, registry.ErrStorageNotFound):
+	case errors.Is(err, kvdb.ErrStorageNotFound):
 	default:
 		g.Log().Warningf(ctx, "build global Variables failed: %v", err)
 		return
@@ -82,12 +82,12 @@ func (h *variableHandler) build(ctx context.Context) {
 	}
 }
 
-func (h *variableHandler) eventHandler(t registry.EventType, key string, value interface{}) {
+func (h *variableHandler) eventHandler(t kvdb.EventType, key string, value interface{}) {
 	g.Log().Infof(context.Background(), "global variable change event: type=%s key=%s", t, key)
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	switch t {
-	case registry.EventTypeDelete:
+	case kvdb.EventTypeDelete:
 		delete(h.global, key)
 	default:
 		h.global[key] = gconv.String(value)

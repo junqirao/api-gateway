@@ -6,7 +6,8 @@ import (
 	"testing"
 
 	"github.com/gogf/gf/v2/frame/g"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/kvdb"
+	"github.com/junqirao/gocomponents/registry"
 )
 
 type test struct {
@@ -24,7 +25,7 @@ func TestProgram(t *testing.T) {
 		panic(err)
 		return
 	}
-	err = registry.Init(context.Background(), cfg)
+	err = registry.Init(context.Background(), kvdb.MustGetDatabase(context.Background()))
 	if err != nil {
 		panic(err)
 		return

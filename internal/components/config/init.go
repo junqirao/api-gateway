@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/kvdb"
 
 	"api-gateway/internal/consts"
 )
@@ -16,11 +16,15 @@ var (
 
 type (
 	ChangeEvent func(t EventType, module, key string, value interface{})
-	// EventType alias of registry.EventType
-	EventType = registry.EventType
+	// EventType alias of kvdb.EventType
+	EventType = kvdb.EventType
 )
 
 func Init(ctx context.Context) {
+	// init dependencies
+	if err := kvdb.InitStorage(ctx, kvdb.MustGetDatabase(ctx)); err != nil {
+		panic(err)
+	}
 	// load configs from file
 	loadConfigs(ctx)
 	// init config update event bus
@@ -28,7 +32,7 @@ func Init(ctx context.Context) {
 }
 
 func initConfigUpdateEventBus() {
-	registry.Storages.SetEventHandler(consts.StorageNameServiceConfig, func(t registry.EventType, key string, value interface{}) {
+	kvdb.Storages.SetEventHandler(consts.StorageNameServiceConfig, func(t kvdb.EventType, key string, value interface{}) {
 		parts := strings.Split(key, StorageSeparator)
 		if len(parts) < 2 {
 			// drop invalid key

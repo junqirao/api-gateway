@@ -14,7 +14,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags '-w -s' -o server
 ###############################################################################
 #                                INSTALLATION
 ###############################################################################
-FROM alphine:3.19.1
+FROM alpine:3.19.1
 
 COPY --from=builder /root/api-gateway/server                             /app/server
 COPY --from=builder /root/api-gateway/manifest/docker/entrypoint.sh      /entrypoint.sh

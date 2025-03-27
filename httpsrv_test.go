@@ -12,7 +12,8 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gfile"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/kvdb"
+	"github.com/junqirao/gocomponents/registry"
 
 	"api-gateway/internal/components/grace"
 	"api-gateway/internal/components/response"
@@ -92,7 +93,7 @@ func startEchoServer(name string, port, weight int) {
 		panic(err)
 		return
 	}
-	err = registry.Init(context.Background(), cfg, registry.NewInstance("test").WithMetaData(
+	err = registry.Init(context.Background(), kvdb.MustGetDatabase(context.Background()), registry.NewInstance("test").WithMetaData(
 		map[string]interface{}{
 			"name":   name,
 			"weight": weight,
@@ -130,7 +131,7 @@ func startBenchmarkServer(name string, port, weight int) {
 		panic(err)
 		return
 	}
-	err = registry.Init(context.Background(), cfg, registry.NewInstance("benchmark").WithMetaData(
+	err = registry.Init(context.Background(), kvdb.MustGetDatabase(context.Background()), registry.NewInstance("benchmark").WithMetaData(
 		map[string]interface{}{
 			"name":   name,
 			"weight": weight,

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gogf/gf/contrib/rpc/grpcx/v2"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/registry"
 	"google.golang.org/grpc"
 
 	ups "api-gateway/api/inner/upstream"

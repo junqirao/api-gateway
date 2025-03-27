@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gogf/gf/v2/util/gconv"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/registry"
 
 	"github.com/gogf/gf/contrib/rpc/grpcx/v2"
 

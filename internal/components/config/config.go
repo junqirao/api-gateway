@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/gogf/gf/v2/frame/g"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/kvdb"
 
 	"api-gateway/internal/consts"
 )
@@ -44,9 +44,9 @@ var (
 
 func GetServiceConfig(serviceName string) (*ServiceConfig, bool) {
 	ctx := context.Background()
-	kvs, err := registry.Storages.GetStorage(consts.StorageNameServiceConfig).Get(ctx, serviceName)
+	kvs, err := kvdb.Storages.GetStorage(consts.StorageNameServiceConfig).Get(ctx, serviceName)
 	switch {
-	case errors.Is(err, registry.ErrStorageNotFound):
+	case errors.Is(err, kvdb.ErrStorageNotFound):
 	case err == nil:
 	default:
 		g.Log().Infof(ctx, "failed to get service %s config, using default. result=%v", consts.StorageNameServiceConfig, err)

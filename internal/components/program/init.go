@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gogf/gf/v2/frame/g"
-	registry "github.com/junqirao/simple-registry"
+	"github.com/junqirao/gocomponents/kvdb"
 
 	"api-gateway/internal/components/config"
 	"api-gateway/internal/consts"
@@ -15,10 +15,10 @@ func Init(ctx context.Context) {
 	// Variables
 	Variables = &variableHandler{global: make(map[string]interface{})}
 	Variables.build(ctx)
-	registry.Storages.SetEventHandler(consts.StorageNameVariable, Variables.eventHandler)
+	kvdb.Storages.SetEventHandler(consts.StorageNameVariable, Variables.eventHandler)
 	// program
 	buildCache(ctx)
-	registry.Storages.SetEventHandler(consts.StorageNameProgram, func(t registry.EventType, key string, value interface{}) {
+	kvdb.Storages.SetEventHandler(consts.StorageNameProgram, func(t kvdb.EventType, key string, value interface{}) {
 		g.Log().Infof(ctx, "program change event: type=%s key=%s", t, key)
 		parts := strings.Split(key, config.StorageSeparator)
 		if len(parts) < 2 {
@@ -28,12 +28,12 @@ func Init(ctx context.Context) {
 		serviceName := parts[0]
 		programName := parts[1]
 		switch t {
-		case registry.EventTypeUpdate, registry.EventTypeCreate:
+		case kvdb.EventTypeUpdate, kvdb.EventTypeCreate:
 			if _, err := buildCacheByService(serviceName); err != nil {
 				g.Log().Errorf(ctx, "build cache failed: %v", err)
 				return
 			}
-		case registry.EventTypeDelete:
+		case kvdb.EventTypeDelete:
 			if v, ok := m.Load(serviceName); ok && v != empty {
 				p := v.(*Programs)
 				p.Delete(programName)
