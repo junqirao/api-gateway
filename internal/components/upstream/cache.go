@@ -25,7 +25,7 @@ type (
 func newUpstreamCache(ctx context.Context) *cacheHandler {
 	h := &cacheHandler{
 		// ignore self
-		ignoreServiceName: g.Cfg().MustGet(ctx, "registry.service_name").String(),
+		ignoreServiceName: g.Cfg().MustGet(ctx, "registry.instance.service_name").String(),
 		m:                 sync.Map{},
 	}
 	h.build(ctx)

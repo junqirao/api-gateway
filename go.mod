@@ -8,7 +8,7 @@ require (
 	github.com/gogf/gf/v2 v2.8.3
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
-	github.com/junqirao/gocomponents v0.0.3
+	github.com/junqirao/gocomponents v0.2.0
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/prometheus/client_golang v1.20.4
 	github.com/sony/gobreaker v1.0.0
@@ -42,10 +42,12 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/oschwald/maxminddb-golang v1.13.0 // indirect
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/satori/go.uuid v1.2.0 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.20 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.20 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.18 // indirect
